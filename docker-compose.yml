@@ -1,0 +1,8 @@
+version: "3"
+services:
+  broker:
+    image: rmohr/activemq:5.10.0
+    ports:
+      - 8161:8161 #UI
+      - 5672:5672 #AMQP
+
