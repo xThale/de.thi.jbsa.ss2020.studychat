@@ -5,4 +5,9 @@ services:
     ports:
       - 8161:8161 #UI
       - 5672:5672 #AMQP
-
+  api-write:
+    image: b-write-api:0.0.1-SNAPSHOT
+    ports:
+      - 8080:8080
+  api-read:
+    image: b-read-api:0.0.1-SNAPSHOT
