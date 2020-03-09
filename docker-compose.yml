@@ -7,7 +7,24 @@ services:
       - 5672:5672 #AMQP
   api-write:
     image: b-write-api:0.0.1-SNAPSHOT
-    ports:
-      - 8080:8080
+    labels:
+      - traefik.http.routers.write.rule=Host(`localhost`) && PathPrefix(`/write`)
+      - traefik.http.middlewares.write.stripprefix.prefixes=/write
+      - traefik.http.routers.write.middlewares=write@docker
+      - traefik.http.services.write.loadbalancer.server.port=8080
   api-read:
     image: b-read-api:0.0.1-SNAPSHOT
+    labels:
+      - traefik.http.routers.read.rule=Host(`localhost`) && PathPrefix(`/read`)
+      - traefik.http.middlewares.read.stripprefix.prefixes=/read
+      - traefik.http.routers.read.middlewares=read@docker
+      - traefik.http.services.read.loadbalancer.server.port=8080
+  reverse-proxy:
+    image: traefik:v2.1
+    command: --api.insecure=true --providers.docker --accesslog=true
+    ports:
+      - 80:80
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+

@@ -1,3 +1,4 @@
 rootProject.name = 'prototype'
 include 'b-write-api'
 include 'b-read-api'
+include 'f-chat'

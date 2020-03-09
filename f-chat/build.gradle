@@ -1,0 +1,3 @@
+dependencies {
+    implementation('com.vaadin:vaadin-spring-boot-starter:14.1.18')
+}
