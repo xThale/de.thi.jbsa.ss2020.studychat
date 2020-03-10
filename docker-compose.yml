@@ -11,7 +11,7 @@ services:
       - traefik.http.routers.chat.rule=Host(`localhost`) && PathPrefix(`/chat`)
       - traefik.http.middlewares.chat.stripprefix.prefixes=/chat
       - traefik.http.routers.chat.middlewares=chat@docker
-      - traefik.http.services.chat.loadbalancer.server.port=8090
+      - traefik.http.services.chat.loadbalancer.server.port=8080
   api-write:
     image: b-write-api:0.0.1-SNAPSHOT
     labels:
