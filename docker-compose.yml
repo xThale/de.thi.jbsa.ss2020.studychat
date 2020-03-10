@@ -5,6 +5,13 @@ services:
     ports:
       - 8161:8161 #UI
       - 5672:5672 #AMQP
+  frontend-chat:
+    image: f-chat:0.0.1-SNAPSHOT
+    labels:
+      - traefik.http.routers.chat.rule=Host(`localhost`) && PathPrefix(`/chat`)
+      - traefik.http.middlewares.chat.stripprefix.prefixes=/chat
+      - traefik.http.routers.chat.middlewares=chat@docker
+      - traefik.http.services.chat.loadbalancer.server.port=8090
   api-write:
     image: b-write-api:0.0.1-SNAPSHOT
     labels:
