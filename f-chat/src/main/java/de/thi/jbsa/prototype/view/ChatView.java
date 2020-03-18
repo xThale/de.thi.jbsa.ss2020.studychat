@@ -4,17 +4,21 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
 
+@UIScope
+@SpringComponent
 @Route("home")
-@Component
 public class ChatView
   extends VerticalLayout {
 
@@ -27,29 +31,34 @@ public class ChatView
   private String sendMessageUrl;
 
   public ChatView(RestTemplate restTemplate) {
-    TextField receivedMessageField = new TextField();
-    receivedMessageField.setLabel("Received Message");
-    receivedMessageField.setValue("");
-    receivedMessageField.setReadOnly(true);
+    HorizontalLayout componentLayout = new HorizontalLayout();
 
-    TextField sendMessageField = new TextField();
-    sendMessageField.setLabel("Send Message");
-    sendMessageField.addKeyPressListener(Key.ENTER, e -> {
-      sendMessage(sendMessageField.getValue());
-      receivedMessageField.setValue(getMessage());
-    });
+    VerticalLayout sendLayout = new VerticalLayout();
+    VerticalLayout fetchLayout = new VerticalLayout();
 
-    Button sendMessageButton = new Button();
-    sendMessageButton.setText("Send message");
-    sendMessageButton.addClickListener(e -> {
-      sendMessage(sendMessageField.getValue());
-      receivedMessageField.setValue(getMessage());
-    });
+    TextField sendMessageField = new TextField("Message To Send");
+    sendMessageField.addKeyPressListener(Key.ENTER, e -> sendMessage(sendMessageField.getValue()));
+
+    Button sendMessageButton = new Button("Send message");
+    sendMessageButton.addClickListener(e -> sendMessage(sendMessageField.getValue()));
+    sendMessageButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+    TextField fetchMessageField = new TextField("Received Message");
+    fetchMessageField.setValue("");
+    fetchMessageField.setReadOnly(true);
+
+    Button fetchMessageButton = new Button("Fetch message");
+    fetchMessageButton.addClickListener(e -> fetchMessageField.setValue(getMessage()));
+    fetchMessageButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
     add(new Text("Welcome to Studychat."));
-    add(sendMessageField);
-    add(sendMessageButton);
-    add(receivedMessageField);
+    sendLayout.add(sendMessageField);
+    sendLayout.add(sendMessageButton);
+    fetchLayout.add(fetchMessageField);
+    fetchLayout.add(fetchMessageButton);
+    componentLayout.add(sendLayout);
+    componentLayout.add(fetchLayout);
+    add(componentLayout);
     this.restTemplate = restTemplate;
   }
 
