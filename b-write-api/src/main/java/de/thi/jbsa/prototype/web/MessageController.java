@@ -20,19 +20,19 @@ import lombok.extern.java.Log;
 @Log
 public class MessageController {
 
-  private final Queue queue;
+    private final Queue queue;
 
-  private final JmsTemplate jmsTemplate;
+    private final JmsTemplate jmsTemplate;
 
-  public MessageController(Queue queue, JmsTemplate jmsTemplate) {
-    this.queue = queue;
-    this.jmsTemplate = jmsTemplate;
-  }
+    public MessageController(Queue queue, JmsTemplate jmsTemplate) {
+        this.queue = queue;
+        this.jmsTemplate = jmsTemplate;
+    }
 
-  @PostMapping(path="message", consumes = "text/plain")
-  public ResponseEntity<String> publish(@RequestBody final String message) {
-    jmsTemplate.convertAndSend(queue, message);
-    log.info("Sent message to queue " + message);
-    return new ResponseEntity(message, HttpStatus.OK);
-  }
+    @PostMapping(path="message", consumes = "text/plain")
+    public ResponseEntity<String> publish(@RequestBody final String message) {
+        jmsTemplate.convertAndSend(queue, message);
+        log.info("Sent message to queue " + message);
+        return new ResponseEntity(message, HttpStatus.OK);
+    }
 }

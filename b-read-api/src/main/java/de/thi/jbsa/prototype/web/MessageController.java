@@ -17,6 +17,6 @@ public class MessageController {
 
   @GetMapping("/message")
   public ResponseEntity<String> getMessage() {
-    return new ResponseEntity<>(messageService.getMessage(), HttpStatus.OK);
+    return new ResponseEntity<>(messageService.getMessage().toUpperCase(), HttpStatus.OK);
   }
 }
