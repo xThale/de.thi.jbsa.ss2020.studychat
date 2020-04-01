@@ -1,5 +1,7 @@
 package de.thi.jbsa.prototype.service;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +10,10 @@ import lombok.Setter;
 public class MessageService {
 
   @Getter
-  @Setter
-  private String message;
+  private LinkedList<String> messages = new LinkedList<>();
+
+  public void addMessage(String message){
+    messages.add(message);
+  }
+
 }
