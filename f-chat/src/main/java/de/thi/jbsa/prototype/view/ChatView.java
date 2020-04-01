@@ -1,6 +1,8 @@
 package de.thi.jbsa.prototype.view;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,8 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
+import de.thi.jbsa.prototype.model.Message;
+import de.thi.jbsa.prototype.model.MessageList;
 import lombok.extern.slf4j.Slf4j;
 
 @UIScope
@@ -61,9 +65,7 @@ public class ChatView
     VerticalLayout messageListContainer = new VerticalLayout();
 
     Button fetchMessagesButton = new Button("Fetch all messages");
-    fetchMessagesButton.addClickListener(e -> {
-      fillUpMessageList(messageListContainer);
-    });
+    fetchMessagesButton.addClickListener(e -> fillUpMessageList(messageListContainer));
     fetchMessagesButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
     multipleMessagesView.add(messageListContainer);
@@ -86,18 +88,22 @@ public class ChatView
     getAllMessages().forEach(s -> {
       TextField newMessageField = new TextField();
       newMessageField.setReadOnly(true);
-      newMessageField.setValue(s);
+      newMessageField.setValue(s.getContent());
       messageListContainer.add(newMessageField);
     });
   }
 
-  private LinkedList<String> getAllMessages() {
-    return Optional.of(restTemplate.getForEntity(getMessagesUrl, LinkedList.class))
-                   .orElse(new ResponseEntity<>(new LinkedList(), HttpStatus.I_AM_A_TEAPOT)).getBody();
+  private List<Message> getAllMessages() {
+    ResponseEntity<MessageList> responseEntity = restTemplate.getForEntity(getMessagesUrl, MessageList.class);
+    if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
+      return responseEntity.getBody().getMessages();
+    }
+    return new ArrayList<>();
   }
 
   private String getLastMessage() {
-    return Optional.of(restTemplate.getForEntity(getMessageUrl, String.class)).orElse(new ResponseEntity<>("", HttpStatus.I_AM_A_TEAPOT)).getBody();
+    return Objects.requireNonNull(Optional.of(restTemplate.getForEntity(getMessageUrl, Message.class))
+                                          .orElse(new ResponseEntity<>(new Message(""), HttpStatus.I_AM_A_TEAPOT)).getBody()).getContent();
   }
 
   private void sendMessage(String message) {
