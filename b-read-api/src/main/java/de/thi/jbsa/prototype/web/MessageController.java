@@ -1,6 +1,5 @@
 package de.thi.jbsa.prototype.web;
 
-import java.util.LinkedList;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +26,7 @@ public class MessageController {
 
   @GetMapping("/messages")
   public ResponseEntity<MessageList> getMessages() {
-    MessageList messageList  = new MessageList(messageService.getMessages());
+    MessageList messageList = new MessageList(messageService.getMessages());
     return new ResponseEntity<>(messageList, HttpStatus.OK);
   }
 }
