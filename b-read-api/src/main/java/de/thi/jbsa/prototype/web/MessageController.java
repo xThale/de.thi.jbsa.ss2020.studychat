@@ -1,5 +1,8 @@
 package de.thi.jbsa.prototype.web;
 
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.function.BinaryOperator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,12 +24,14 @@ public class MessageController {
 
   @GetMapping("/message")
   public ResponseEntity<Message> getLastMessage() {
-    return new ResponseEntity<>(messageService.getMessages().getLast(), HttpStatus.OK);
+    final Optional<Message> lastMessage = messageService.getAllMessages().stream().reduce(
+      BinaryOperator.maxBy(Comparator.comparingLong(value -> value.getDate().getTime())));
+    return ResponseEntity.of(lastMessage);
   }
 
   @GetMapping("/messages")
   public ResponseEntity<MessageList> getMessages() {
-    MessageList messageList = new MessageList(messageService.getMessages());
+    MessageList messageList = new MessageList(messageService.getAllMessages());
     return new ResponseEntity<>(messageList, HttpStatus.OK);
   }
 }

@@ -1,17 +1,23 @@
 package de.thi.jbsa.prototype.service;
 
-import java.util.LinkedList;
+import java.sql.Timestamp;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import de.thi.jbsa.prototype.domain.Message;
-import lombok.Getter;
+import de.thi.jbsa.prototype.repository.MessageRepository;
 
 @Service
 public class MessageService {
 
-  @Getter
-  private LinkedList<Message> messages = new LinkedList<>();
+  private final MessageRepository messageRepository;
+
+  public MessageService(MessageRepository messageRepository) {this.messageRepository = messageRepository;}
 
   public void addMessage(String message) {
-    messages.add(new Message(message));
+    messageRepository.save(new Message(message,new Timestamp(System.currentTimeMillis())));
+  }
+
+  public List<Message> getAllMessages(){
+    return messageRepository.findAll();
   }
 }
