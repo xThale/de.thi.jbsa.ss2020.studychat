@@ -30,9 +30,9 @@ public class MessageController {
   }
 
   @PostMapping(path="message", consumes = "text/plain")
-  public ResponseEntity<String> publish(@RequestBody final String message) {
-    jmsTemplate.convertAndSend(queue, message);
-    log.info("Sent message to queue " + message);
-    return new ResponseEntity(message, HttpStatus.OK);
+  public ResponseEntity<String> publish(@RequestBody final String command) {
+    jmsTemplate.convertAndSend(queue, command);
+    log.info("Sent command to queue " + command);
+    return new ResponseEntity<>(command, HttpStatus.OK);
   }
 }

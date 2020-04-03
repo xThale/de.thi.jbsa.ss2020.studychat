@@ -18,9 +18,9 @@ public class MessageConsumer {
 
   public MessageConsumer(MessageService messageService) {this.messageService = messageService;}
 
-  @JmsListener(destination = "test-queue")
-  public void listener(String message) {
-    log.info("Message received " + message);
-    messageService.addMessage(message);
+  @JmsListener(destination = "event-queue")
+  public void listener(String event) {
+    log.info("event received " + event);
+    messageService.addMessage(event);
   }
 }

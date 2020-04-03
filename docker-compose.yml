@@ -26,6 +26,8 @@ services:
       - traefik.http.middlewares.read.stripprefix.prefixes=/read
       - traefik.http.routers.read.middlewares=read@docker
       - traefik.http.services.read.loadbalancer.server.port=8080
+  domain-handler:
+    image: b-domain-handler:0.0.1-SNAPSHOT
   reverse-proxy:
     image: traefik:v2.1
     command: --api.insecure=true --providers.docker --accesslog=true
