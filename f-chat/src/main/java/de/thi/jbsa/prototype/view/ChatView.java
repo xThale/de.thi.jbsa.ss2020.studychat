@@ -18,8 +18,8 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-import de.thi.jbsa.prototype.model.cmd.MessageCmd;
 import de.thi.jbsa.prototype.model.cmd.MessageList;
+import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
 import lombok.extern.slf4j.Slf4j;
 
 @UIScope
@@ -29,13 +29,13 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatView
   extends VerticalLayout {
 
+  final RestTemplate restTemplate;
+
   @Value("${studychat.url.getMessage}")
   private String getMessageUrl;
 
   @Value("${studychat.url.getMessages}")
   private String getMessagesUrl;
-
-  final RestTemplate restTemplate;
 
   @Value("${studychat.url.sendMessage}")
   private String sendMessageUrl;
@@ -93,7 +93,7 @@ public class ChatView
     });
   }
 
-  private List<MessageCmd> getAllMessages() {
+  private List<PostMessageCmd> getAllMessages() {
     ResponseEntity<MessageList> responseEntity = restTemplate.getForEntity(getMessagesUrl, MessageList.class);
     if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
       return responseEntity.getBody().getMessages();
@@ -102,8 +102,8 @@ public class ChatView
   }
 
   private String getLastMessage() {
-    return Objects.requireNonNull(Optional.of(restTemplate.getForEntity(getMessageUrl, MessageCmd.class))
-                                          .orElse(new ResponseEntity<>(new MessageCmd(""), HttpStatus.I_AM_A_TEAPOT)).getBody()).getContent();
+    return Objects.requireNonNull(Optional.of(restTemplate.getForEntity(getMessageUrl, PostMessageCmd.class))
+                                          .orElse(new ResponseEntity<>(new PostMessageCmd("", ""), HttpStatus.I_AM_A_TEAPOT)).getBody()).getContent();
   }
 
   private void sendMessage(String message, String userId) {

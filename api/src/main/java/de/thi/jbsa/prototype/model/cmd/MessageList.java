@@ -13,5 +13,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MessageList {
 
-  private List<Cmd> messages;
+  private List<PostMessageCmd> messages;
 }

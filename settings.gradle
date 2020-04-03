@@ -2,6 +2,6 @@ rootProject.name = 'prototype'
 include 'b-write-api'
 include 'b-read-api'
 include 'b-domain-handler'
-include 'cmd-chat'
+include 'f-chat'
 include 'api'
 
