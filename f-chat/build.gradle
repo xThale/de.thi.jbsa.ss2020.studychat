@@ -1,6 +1,7 @@
 apply plugin: 'com.vaadin'
 
 dependencies {
+    implementation project(':api')
     implementation('com.vaadin:vaadin-spring-boot-starter:14.1.18')
     implementation('com.vaadin:flow-server:2.1.6')
 }
