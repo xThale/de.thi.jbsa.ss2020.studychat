@@ -28,6 +28,14 @@ services:
       - traefik.http.services.read.loadbalancer.server.port=8080
   domain-handler:
     image: b-domain-handler:0.0.1-SNAPSHOT
+  event-source:
+    image: postgres
+    restart: always
+    ports:
+    - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: aoeu',.p;qjk
+      POSTGRES_DB: event-source
   reverse-proxy:
     image: traefik:v2.1
     command: --api.insecure=true --providers.docker --accesslog=true
