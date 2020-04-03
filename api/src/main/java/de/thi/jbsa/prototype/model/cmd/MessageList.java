@@ -1,4 +1,4 @@
-package de.thi.jbsa.prototype.model;
+package de.thi.jbsa.prototype.model.cmd;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -13,5 +13,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MessageList {
 
-  private List<Message> messages;
+  private List<Cmd> messages;
 }

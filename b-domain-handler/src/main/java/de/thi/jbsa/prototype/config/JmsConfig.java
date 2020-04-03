@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class JmsConfig {
 
-  public static final String COMMAND_QUEUE_NAME = "command-queue";
+  public static final String COMMAND_QUEUE_NAME = "cmd-queue";
 
   public static final String EVENT_QUEUE_NAME = "event-queue";
 

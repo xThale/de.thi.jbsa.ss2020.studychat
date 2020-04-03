@@ -25,7 +25,7 @@ public class MessageController {
   @GetMapping("/message")
   public ResponseEntity<Message> getLastMessage() {
     final Optional<Message> lastMessage = messageService.getAllMessages().stream().reduce(
-      BinaryOperator.maxBy(Comparator.comparingLong(value -> value.getDate().getTime())));
+      BinaryOperator.maxBy(Comparator.comparingLong(value -> value.getCreated().getTime())));
     return ResponseEntity.of(lastMessage);
   }
 

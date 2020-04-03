@@ -4,7 +4,9 @@ import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 import de.thi.jbsa.prototype.config.JmsConfig;
-import de.thi.jbsa.prototype.service.CommandProcessor;
+import de.thi.jbsa.prototype.model.cmd.Cmd;
+import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
+import de.thi.jbsa.prototype.service.MessageProcessorService;
 import lombok.extern.java.Log;
 
 /**
@@ -15,15 +17,19 @@ import lombok.extern.java.Log;
 @Log
 public class CommandConsumer {
 
-  private final CommandProcessor commandProcessor;
+  private final MessageProcessorService messageProcessorService;
 
-  public CommandConsumer(CommandProcessor commandProcessor) {
-    this.commandProcessor = commandProcessor;
+  public CommandConsumer(MessageProcessorService messageProcessorService) {
+    this.messageProcessorService = messageProcessorService;
   }
 
   @JmsListener(destination = JmsConfig.COMMAND_QUEUE_NAME)
-  public void listener(String message) {
-    log.info("Command received " + message);
-    commandProcessor.processCommand(message);
+  public void listener(Cmd cmd) {
+    log.info("Command received " + cmd);
+    if (cmd instanceof PostMessageCmd) {
+      messageProcessorService.postMessage((PostMessageCmd) cmd);
+    } else {
+      throw new IllegalArgumentException("Command isn't supported: " + cmd);
+    }
   }
 }

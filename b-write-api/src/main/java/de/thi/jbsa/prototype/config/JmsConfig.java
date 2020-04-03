@@ -14,6 +14,6 @@ public class JmsConfig {
 
   @Bean
   public Queue queue() {
-    return new ActiveMQQueue("command-queue");
+    return new ActiveMQQueue("cmd-queue");
   }
 }

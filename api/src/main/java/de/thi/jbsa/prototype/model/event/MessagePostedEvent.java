@@ -1,5 +1,6 @@
-package de.thi.jbsa.prototype.model;
+package de.thi.jbsa.prototype.model.event;
 
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Message {
-
+public class MessagePostedEvent
+  implements Event {
+  private final UUID uuid = UUID.randomUUID();
+  private UUID cmdUuid;
+  private String userId;
   private String content;
 }

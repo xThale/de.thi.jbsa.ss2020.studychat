@@ -18,8 +18,8 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-import de.thi.jbsa.prototype.model.Message;
-import de.thi.jbsa.prototype.model.MessageList;
+import de.thi.jbsa.prototype.model.cmd.MessageCmd;
+import de.thi.jbsa.prototype.model.cmd.MessageList;
 import lombok.extern.slf4j.Slf4j;
 
 @UIScope
@@ -29,13 +29,13 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatView
   extends VerticalLayout {
 
-  final RestTemplate restTemplate;
-
   @Value("${studychat.url.getMessage}")
   private String getMessageUrl;
 
   @Value("${studychat.url.getMessages}")
   private String getMessagesUrl;
+
+  final RestTemplate restTemplate;
 
   @Value("${studychat.url.sendMessage}")
   private String sendMessageUrl;
@@ -46,14 +46,14 @@ public class ChatView
     VerticalLayout sendLayout = new VerticalLayout();
     VerticalLayout fetchLayout = new VerticalLayout();
 
-    TextField sendMessageField = new TextField("Message To Send");
-    sendMessageField.addKeyPressListener(Key.ENTER, e -> sendMessage(sendMessageField.getValue()));
+    TextField sendMessageField = new TextField("MessageCmd To Send");
+    sendMessageField.addKeyPressListener(Key.ENTER, e -> sendMessage(sendMessageField.getValue(), "userId"));
 
     Button sendMessageButton = new Button("Send message");
-    sendMessageButton.addClickListener(e -> sendMessage(sendMessageField.getValue()));
+    sendMessageButton.addClickListener(e -> sendMessage(sendMessageField.getValue(), "userId"));
     sendMessageButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-    TextField fetchMessageField = new TextField("Received Message");
+    TextField fetchMessageField = new TextField("Received MessageCmd");
     fetchMessageField.setValue("");
     fetchMessageField.setReadOnly(true);
 
@@ -93,7 +93,7 @@ public class ChatView
     });
   }
 
-  private List<Message> getAllMessages() {
+  private List<MessageCmd> getAllMessages() {
     ResponseEntity<MessageList> responseEntity = restTemplate.getForEntity(getMessagesUrl, MessageList.class);
     if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
       return responseEntity.getBody().getMessages();
@@ -102,11 +102,11 @@ public class ChatView
   }
 
   private String getLastMessage() {
-    return Objects.requireNonNull(Optional.of(restTemplate.getForEntity(getMessageUrl, Message.class))
-                                          .orElse(new ResponseEntity<>(new Message(""), HttpStatus.I_AM_A_TEAPOT)).getBody()).getContent();
+    return Objects.requireNonNull(Optional.of(restTemplate.getForEntity(getMessageUrl, MessageCmd.class))
+                                          .orElse(new ResponseEntity<>(new MessageCmd(""), HttpStatus.I_AM_A_TEAPOT)).getBody()).getContent();
   }
 
-  private void sendMessage(String message) {
+  private void sendMessage(String message, String userId) {
     restTemplate.postForEntity(sendMessageUrl, message, String.class);
   }
 }
