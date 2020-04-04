@@ -13,8 +13,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MessagePostedEvent
   implements Event {
-  private final UUID uuid = UUID.randomUUID();
+
   private UUID cmdUuid;
-  private String userId;
+
   private String content;
+
+  private Long entityId;
+
+  private String userId;
+
+  private final UUID uuid = UUID.randomUUID();
 }

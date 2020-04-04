@@ -1,10 +1,11 @@
 package de.thi.jbsa.prototype.service;
 
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import org.springframework.stereotype.Service;
-import de.thi.jbsa.prototype.domain.Message;
+import de.thi.jbsa.prototype.domain.MessageDoc;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
+import de.thi.jbsa.prototype.model.model.Message;
 import de.thi.jbsa.prototype.repository.MessageRepository;
 
 @Service
@@ -14,11 +15,23 @@ public class MessageService {
 
   public MessageService(MessageRepository messageRepository) {this.messageRepository = messageRepository;}
 
-  public void handleMessagePostedEvent(MessagePostedEvent event) {
-    messageRepository.save(new Message(event));
+  private Message createMsg(MessagePostedEvent event) {
+    Message msg = new Message();
+    msg.setCmdUuid(event.getCmdUuid());
+    msg.setContent(event.getContent());
+    msg.setCreated(new Date());
+    msg.setEntityId(event.getEntityId());
+    msg.setEventUuid(event.getUuid());
+    msg.setSenderUserId(event.getUserId());
+    return msg;
   }
 
-  public List<Message> getAllMessages(){
+  public List<MessageDoc> getAllMessages() {
     return messageRepository.findAll();
+  }
+
+  public void handleMessagePostedEvent(MessagePostedEvent event) {
+    MessageDoc doc = new MessageDoc(createMsg(event));
+    messageRepository.save(doc);
   }
 }

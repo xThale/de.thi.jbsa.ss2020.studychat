@@ -1,4 +1,4 @@
-package de.thi.jbsa.prototype.domain;
+package de.thi.jbsa.prototype.model.model;
 
 import java.util.List;
 import lombok.AllArgsConstructor;

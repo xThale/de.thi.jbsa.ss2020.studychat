@@ -15,13 +15,14 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-public class BusinessEvent {
+@Entity(name = "event_entity")
+public class EventEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column
   private Long id;
 
-  @Column(name = "value")
+  @Column
   private String value;
 }

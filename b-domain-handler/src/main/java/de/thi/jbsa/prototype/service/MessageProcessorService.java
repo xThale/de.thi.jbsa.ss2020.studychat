@@ -6,7 +6,7 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.thi.jbsa.prototype.BusinessEvent;
+import de.thi.jbsa.prototype.EventEntity;
 import de.thi.jbsa.prototype.EventRepository;
 import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
@@ -35,29 +35,30 @@ public class MessageProcessorService {
 
   public void postMessage(PostMessageCmd cmd) {
 
-    log.info("creating event for ... " + cmd);
+    MessageProcessorService.log.info("creating event for ... " + cmd);
     MessagePostedEvent event = new MessagePostedEvent();
     event.setCmdUuid(cmd.getUuid());
     event.setContent(cmd.getContent());
     event.setUserId(cmd.getUserId());
     // This is the place for more business logic
-
-    saveEvent(event);
+    EventEntity entity = saveEvent(event);
+    event.setEntityId(entity.getId()); // corresponding event entity in the event-source db
     sendEvent(event);
   }
 
-  private void saveEvent(MessagePostedEvent event) {
-    BusinessEvent entity = new BusinessEvent();
+  private EventEntity saveEvent(MessagePostedEvent event) {
+    EventEntity entity = new EventEntity();
     String json = toJson(event);
     entity.setValue(json);
-    log.debug("Writing event... : " + json);
-    //    eventRepository.save(entity);
-    log.info("Sent event to queue " + event);
+    MessageProcessorService.log.debug("Writing event... : " + json);
+    eventRepository.save(entity);
+    MessageProcessorService.log.info("Sent event to queue " + event);
+    return entity;
   }
 
   private void sendEvent(MessagePostedEvent event) {
     jmsTemplate.convertAndSend(eventQueue, event);
-    log.info("Sent event to queue " + event);
+    MessageProcessorService.log.info("Sent event to queue " + event);
   }
 
   private String toJson(de.thi.jbsa.prototype.model.event.Event event) {

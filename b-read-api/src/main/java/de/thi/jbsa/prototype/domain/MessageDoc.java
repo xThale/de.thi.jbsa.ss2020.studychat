@@ -1,6 +1,6 @@
-package de.thi.jbsa.prototype.model.cmd;
+package de.thi.jbsa.prototype.domain;
 
-import java.util.List;
+import org.springframework.data.mongodb.core.mapping.Document;
 import de.thi.jbsa.prototype.model.model.Message;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +12,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MessageList {
+@Document(collection = "messages")
+public class MessageDoc {
 
-  private List<Message> messages;
+  private Message message;
 }
