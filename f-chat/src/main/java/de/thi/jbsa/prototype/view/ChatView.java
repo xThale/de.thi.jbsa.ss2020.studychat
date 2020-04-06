@@ -41,8 +41,6 @@ public class ChatView
   @Value("${studychat.url.getMessages}")
   private String getMessagesUrl;
 
-  ListBox<Message> msgListBox;
-
   final RestTemplate restTemplate;
 
   @Value("${studychat.url.sendMessage}")
@@ -53,6 +51,7 @@ public class ChatView
   }
 
   public ChatView(RestTemplate restTemplate) {
+    this.restTemplate = restTemplate;
     HorizontalLayout componentLayout = new HorizontalLayout();
 
     VerticalLayout sendLayout = new VerticalLayout();
@@ -71,19 +70,6 @@ public class ChatView
     sendMessageButton.addClickListener(e -> sendMessage(sendMessageField.getValue(), sendUserIdField.getValue()));
     sendMessageButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-    TextField fetchMessageField = new TextField("Received Last Message");
-    fetchMessageField.setValue("");
-    fetchMessageField.setReadOnly(true);
-
-    Button fetchMessageButton = new Button("Fetch message");
-    fetchMessageButton.addClickListener(e -> {
-      Message msg = getLastMessage();
-      fetchMessageField.setValue(msg.getSenderUserId() + ": " + msg.getContent());
-    });
-    fetchMessageButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-    msgListBox = new ListBox<>();
-
     ListBox<Message> msgListBox = new ListBox<>();
     MessageFormat msgListBoxTipFormat = new MessageFormat(
       "" +
@@ -101,43 +87,25 @@ public class ChatView
       return label;
     }));
     //
-    VerticalLayout multipleMessagesView = new VerticalLayout();
-    VerticalLayout messageListContainer = new VerticalLayout();
-
     Button fetchMessagesButton = new Button("Fetch all messages");
     fetchMessagesButton.addClickListener(e -> {
       List<Message> msgList = getAllMessages();
-      fillUpMessageList(messageListContainer, msgList);
       msgListBox.setItems(msgList);
       Notification.show(msgList.size() + " items found");
     });
     fetchMessagesButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-    multipleMessagesView.add(messageListContainer);
-
     add(new Text("Welcome to Studychat"));
     sendLayout.add(sendUserIdField);
     sendLayout.add(sendMessageField);
     sendLayout.add(sendMessageButton);
-    fetchLayout.add(fetchMessageField);
-    fetchLayout.add(fetchMessageButton);
-    fetchLayout.add(fetchMessagesButton);
+
     fetchLayout.add(msgListBox);
+    fetchLayout.add(fetchMessagesButton);
+
     componentLayout.add(sendLayout);
     componentLayout.add(fetchLayout);
-    componentLayout.add(multipleMessagesView);
     add(componentLayout);
-    this.restTemplate = restTemplate;
-  }
-
-  private void fillUpMessageList(VerticalLayout messageListContainer, List<Message> msgList) {
-    messageListContainer.removeAll();
-    msgList.forEach(s -> {
-      TextField newMessageField = new TextField();
-      newMessageField.setReadOnly(true);
-      newMessageField.setValue(s.getContent());
-      messageListContainer.add(newMessageField);
-    });
   }
 
   private List<Message> getAllMessages() {
