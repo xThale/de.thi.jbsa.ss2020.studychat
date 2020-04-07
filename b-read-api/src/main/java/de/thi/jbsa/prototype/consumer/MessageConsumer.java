@@ -21,6 +21,6 @@ public class MessageConsumer {
   @JmsListener(destination = "test-queue")
   public void listener(String message) {
     log.info("Message received " + message);
-    messageService.setMessage(message);
+    messageService.addMessage(message);
   }
 }
