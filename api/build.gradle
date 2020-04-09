@@ -1,0 +1,12 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.projectlombok:lombok:1.18.10'
+    annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.10.2'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.10.2'
+}

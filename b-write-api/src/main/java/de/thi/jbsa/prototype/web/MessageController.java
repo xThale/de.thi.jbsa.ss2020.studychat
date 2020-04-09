@@ -1,15 +1,14 @@
 package de.thi.jbsa.prototype.web;
 
-import javax.jms.Queue;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
+import de.thi.jbsa.prototype.service.CommandHandlerService;
 import lombok.extern.java.Log;
 
 /**
@@ -20,19 +19,16 @@ import lombok.extern.java.Log;
 @Log
 public class MessageController {
 
-    private final Queue queue;
+  private final CommandHandlerService commandHandlerService;
 
-    private final JmsTemplate jmsTemplate;
+  public MessageController(CommandHandlerService commandHandlerService) {
+    this.commandHandlerService = commandHandlerService;
+  }
 
-    public MessageController(Queue queue, JmsTemplate jmsTemplate) {
-        this.queue = queue;
-        this.jmsTemplate = jmsTemplate;
-    }
-
-    @PostMapping(path="message", consumes = "text/plain")
-    public ResponseEntity<String> publish(@RequestBody final String message) {
-        jmsTemplate.convertAndSend(queue, message);
-        log.info("Sent message to queue " + message);
-        return new ResponseEntity(message, HttpStatus.OK);
-    }
+  @PostMapping(path = "message", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<PostMessageCmd> publish(@RequestBody final PostMessageCmd cmd) {
+    MessageController.log.info("Received command " + cmd);
+    commandHandlerService.handleCommand(cmd);
+    return new ResponseEntity<>(cmd, HttpStatus.OK);
+  }
 }

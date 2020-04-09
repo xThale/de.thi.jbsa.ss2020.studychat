@@ -1,5 +1,7 @@
-package de.thi.jbsa.prototype.model;
+package de.thi.jbsa.prototype.model.cmd;
 
+import java.util.List;
+import de.thi.jbsa.prototype.model.model.Message;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Message {
+public class MessageList {
 
-  private String content;
+  private List<Message> messages;
 }
