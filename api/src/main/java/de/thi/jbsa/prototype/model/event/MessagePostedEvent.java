@@ -3,6 +3,7 @@ package de.thi.jbsa.prototype.model.event;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
@@ -11,8 +12,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class MessagePostedEvent
-  implements Event {
+  extends AbstractEvent {
+
+  private final UUID uuid = UUID.randomUUID();
 
   private UUID cmdUuid;
 
@@ -21,6 +25,4 @@ public class MessagePostedEvent
   private Long entityId;
 
   private String userId;
-
-  private final UUID uuid = UUID.randomUUID();
 }

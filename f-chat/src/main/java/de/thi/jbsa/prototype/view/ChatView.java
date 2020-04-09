@@ -2,11 +2,11 @@ package de.thi.jbsa.prototype.view;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import com.vaadin.flow.component.Key;
@@ -25,6 +25,9 @@ import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 import de.thi.jbsa.prototype.model.cmd.MessageList;
 import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
+import de.thi.jbsa.prototype.model.event.AbstractEvent;
+import de.thi.jbsa.prototype.model.event.EventList;
+import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
 import de.thi.jbsa.prototype.model.model.Message;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,20 +38,23 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatView
   extends VerticalLayout {
 
+  final RestTemplate restTemplate;
+
+  @Value("${studychat.url.getEvents}")
+  private String getEventsUrl;
+
   @Value("${studychat.url.getMessage}")
   private String getMessageUrl;
 
   @Value("${studychat.url.getMessages}")
   private String getMessagesUrl;
 
-  final RestTemplate restTemplate;
+  private Optional<UUID> lastUUID = Optional.empty();
+
+  private List<Message> messagesForListBox = new ArrayList<>();
 
   @Value("${studychat.url.sendMessage}")
   private String sendMessageUrl;
-
-  private static <T> T[] toArray(T... param) {
-    return param;
-  }
 
   public ChatView(RestTemplate restTemplate) {
     this.restTemplate = restTemplate;
@@ -82,18 +88,25 @@ public class ChatView
     msgListBox.setRenderer(new ComponentRenderer<>(msg -> {
       Label label = new Label(msg.getContent());
       label.setEnabled(false);
-      String tip = msgListBoxTipFormat.format(ChatView.toArray(msg.getCreated(), msg.getSenderUserId(), msg.getCmdUuid(), msg.getEventUuid(), msg.getEntityId()));
+      String tip = msgListBoxTipFormat.format(
+        ChatView.toArray(msg.getCreated(), msg.getSenderUserId(), msg.getCmdUuid(), msg.getEventUuid(), msg.getEntityId()));
       label.setTitle(tip);
       return label;
     }));
     //
-    Button fetchMessagesButton = new Button("Fetch all messages");
-    fetchMessagesButton.addClickListener(e -> {
-      List<Message> msgList = getAllMessages();
-      msgListBox.setItems(msgList);
-      Notification.show(msgList.size() + " items found");
+    Button fetchEventsButton = new Button("Fetch last Events");
+    fetchEventsButton.addClickListener(e -> {
+      List<AbstractEvent> eventList = getEvents(sendUserIdField.getValue());
+      if (eventList.size() > 0) {
+        lastUUID = Optional.of(eventList.get(eventList.size() - 1).getUuid());
+      }
+      eventList.stream()
+               .filter(abstractEvent -> abstractEvent instanceof MessagePostedEvent)
+               .forEach(event -> messagesForListBox.add(createMsg((MessagePostedEvent) event)));
+      msgListBox.setItems(messagesForListBox);
+      Notification.show(eventList.size() + " items found");
     });
-    fetchMessagesButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+    fetchEventsButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
     add(new Text("Welcome to Studychat"));
     sendLayout.add(sendUserIdField);
@@ -101,11 +114,22 @@ public class ChatView
     sendLayout.add(sendMessageButton);
 
     fetchLayout.add(msgListBox);
-    fetchLayout.add(fetchMessagesButton);
+    fetchLayout.add(fetchEventsButton);
 
     componentLayout.add(sendLayout);
     componentLayout.add(fetchLayout);
     add(componentLayout);
+  }
+
+  private Message createMsg(MessagePostedEvent event) {
+    Message msg = new Message();
+    msg.setCmdUuid(event.getCmdUuid());
+    msg.setContent(event.getContent());
+    msg.setCreated(new Date());
+    msg.setEntityId(event.getEntityId());
+    msg.setEventUuid(event.getUuid());
+    msg.setSenderUserId(event.getUserId());
+    return msg;
   }
 
   private List<Message> getAllMessages() {
@@ -116,15 +140,23 @@ public class ChatView
     return new ArrayList<>();
   }
 
-  private Message getLastMessage() {
-    Message msg = Objects.requireNonNull(
-      Optional.of(restTemplate.getForEntity(getMessageUrl, Message.class))
-              .orElse(new ResponseEntity<>(new Message(), HttpStatus.I_AM_A_TEAPOT)).getBody());
-    return msg;
+  private List<AbstractEvent> getEvents(String userId) {
+
+    StringBuilder requestURL = new StringBuilder(getEventsUrl);
+    lastUUID.ifPresent(uuid -> requestURL.append("&lastUUID=").append(uuid));
+    ResponseEntity<EventList> responseEntity = restTemplate.getForEntity(requestURL.toString(), EventList.class, userId);
+    if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
+      return responseEntity.getBody().getEvents();
+    }
+    return new ArrayList<>();
   }
 
   private void sendMessage(String message, String userId) {
     PostMessageCmd cmd = new PostMessageCmd(userId, message);
     restTemplate.postForEntity(sendMessageUrl, cmd, PostMessageCmd.class);
+  }
+
+  private static <T> T[] toArray(T... param) {
+    return param;
   }
 }
