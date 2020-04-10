@@ -1,4 +1,4 @@
-package de.thi.jbsa.prototype;
+package de.thi.jbsa.prototype.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
