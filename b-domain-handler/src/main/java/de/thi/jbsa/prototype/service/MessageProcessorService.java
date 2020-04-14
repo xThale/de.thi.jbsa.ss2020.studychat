@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.thi.jbsa.prototype.EventEntity;
-import de.thi.jbsa.prototype.EventRepository;
 import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
+import de.thi.jbsa.prototype.repository.EventRepository;
 import lombok.extern.slf4j.Slf4j;
 
 /**
