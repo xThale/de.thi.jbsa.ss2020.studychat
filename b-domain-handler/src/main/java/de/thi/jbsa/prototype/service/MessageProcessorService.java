@@ -6,7 +6,7 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.thi.jbsa.prototype.EventEntity;
+import de.thi.jbsa.prototype.model.EventEntity;
 import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
 import de.thi.jbsa.prototype.repository.EventRepository;
