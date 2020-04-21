@@ -51,7 +51,7 @@ public class MessageService {
       indexOfLastEvent = events.stream()
               .map(e -> e.getUuid())
               .collect(Collectors.toList())
-              .indexOf(lastEvent);
+              .indexOf(lastEvent) + 1;
     }
     if (indexOfLastEvent != 0)
       return events
