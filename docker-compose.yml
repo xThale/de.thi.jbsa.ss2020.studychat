@@ -13,6 +13,7 @@ services:
       - traefik.http.middlewares.chat.stripprefix.prefixes=/chat
       - traefik.http.routers.chat.middlewares=chat@docker
       - traefik.http.services.chat.loadbalancer.server.port=8080
+      - traefik.http.services.chat.loadbalancer.sticky.cookie.name=studychat-traefik
   api-write:
     image: b-write-api:0.0.1-SNAPSHOT
     labels:
