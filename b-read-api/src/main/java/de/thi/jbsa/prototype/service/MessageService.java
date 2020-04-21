@@ -5,8 +5,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import de.thi.jbsa.prototype.model.event.Event;
 import org.springframework.stereotype.Service;
 import de.thi.jbsa.prototype.domain.MessageDoc;
 import de.thi.jbsa.prototype.model.event.AbstractEvent;
@@ -51,7 +49,7 @@ public class MessageService {
     int indexOfLastEvent = 0;
     if (lastEvent != null) {
       indexOfLastEvent = events.stream()
-              .map(Event::getUuid)
+              .map(e -> e.getUuid())
               .collect(Collectors.toList())
               .indexOf(lastEvent);
     }
