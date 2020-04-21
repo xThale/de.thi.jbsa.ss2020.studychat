@@ -53,7 +53,7 @@ public class MessageService {
     }
     return events
       .stream()
-      .skip(indexOfLastEvent)
+      .skip(indexOfLastEvent + 1)
       .collect(Collectors.toList());
 
    /*
