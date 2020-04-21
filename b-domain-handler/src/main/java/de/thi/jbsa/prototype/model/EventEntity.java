@@ -27,7 +27,4 @@ public class EventEntity {
 
   @Column
   private String value;
-
-  @Column
-  private String eventName;
 }
