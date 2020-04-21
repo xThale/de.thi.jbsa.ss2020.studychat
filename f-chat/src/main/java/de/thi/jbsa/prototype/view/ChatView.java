@@ -88,8 +88,8 @@ public class ChatView
     msgListBox.setRenderer(new ComponentRenderer<>(msg -> {
       Label label = new Label(msg.getContent());
       label.setEnabled(false);
-      String tip = msgListBoxTipFormat.format(
-        ChatView.toArray(msg.getCreated(), msg.getSenderUserId(), msg.getCmdUuid(), msg.getEventUuid(), msg.getEntityId()));
+      Object[] strings = { msg.getCreated(), msg.getSenderUserId(), msg.getCmdUuid(), msg.getEventUuid(), msg.getEntityId() };
+      String tip = msgListBoxTipFormat.format(strings);
       label.setTitle(tip);
       return label;
     }));
@@ -154,9 +154,5 @@ public class ChatView
   private void sendMessage(String message, String userId) {
     PostMessageCmd cmd = new PostMessageCmd(userId, message);
     restTemplate.postForEntity(sendMessageUrl, cmd, PostMessageCmd.class);
-  }
-
-  private static <T> T[] toArray(T... param) {
-    return param;
   }
 }
