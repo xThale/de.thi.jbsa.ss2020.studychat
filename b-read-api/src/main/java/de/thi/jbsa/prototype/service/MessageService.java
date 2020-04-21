@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.jms.Topic;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import de.thi.jbsa.prototype.domain.MessageDoc;
 import de.thi.jbsa.prototype.model.event.AbstractEvent;
@@ -23,10 +25,16 @@ public class MessageService {
   // TODO Workaround. This does not scale. Create another instance of this service and clients will have different Events
   private final List<AbstractEvent> events = new ArrayList<>(); // workaround
 
+  private final JmsTemplate jmsTemplate;
+
   private final MessageRepository messageRepository;
 
-  public MessageService(MessageRepository messageRepository) {
+  private final Topic topic;
+
+  public MessageService(MessageRepository messageRepository, JmsTemplate jmsTemplate, Topic topic) {
     this.messageRepository = messageRepository;
+    this.jmsTemplate = jmsTemplate;
+    this.topic = topic;
   }
 
   private Message createMsg(MessagePostedEvent event) {
@@ -67,5 +75,6 @@ public class MessageService {
     MessageDoc doc = new MessageDoc(createMsg(event));
     messageRepository.save(doc);
     events.add(event);
+    jmsTemplate.convertAndSend(topic, event);
   }
 }
