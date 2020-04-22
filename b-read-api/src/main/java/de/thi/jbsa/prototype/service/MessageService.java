@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import de.thi.jbsa.prototype.domain.MessageDoc;
 import de.thi.jbsa.prototype.model.event.AbstractEvent;
+import de.thi.jbsa.prototype.model.event.Event;
+import de.thi.jbsa.prototype.model.event.MentionEvent;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
 import de.thi.jbsa.prototype.model.model.Message;
 import de.thi.jbsa.prototype.repository.MessageRepository;
@@ -47,7 +49,7 @@ public class MessageService {
     int indexOfLastEvent = 0;
     if (lastEvent != null) {
       indexOfLastEvent = events.stream()
-                               .map(e -> e.getUuid())
+                               .map(Event::getUuid)
                                .collect(Collectors.toList())
                                .indexOf(lastEvent);
     }
@@ -63,6 +65,11 @@ public class MessageService {
       .orElse(messagePostedEvents);
 
     */
+  }
+
+  public void handleMentionEvent(MentionEvent event) {
+    // This is a temporary event. We don't need that in the read-db.
+    events.add(event);
   }
 
   public void handleMessagePostedEvent(MessagePostedEvent event) {

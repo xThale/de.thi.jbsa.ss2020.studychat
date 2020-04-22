@@ -27,6 +27,7 @@ import de.thi.jbsa.prototype.model.cmd.MessageList;
 import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
 import de.thi.jbsa.prototype.model.event.AbstractEvent;
 import de.thi.jbsa.prototype.model.event.EventList;
+import de.thi.jbsa.prototype.model.event.MentionEvent;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
 import de.thi.jbsa.prototype.model.model.Message;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,7 @@ public class ChatView
   @Value("${studychat.url.getMessages}")
   private String getMessagesUrl;
 
+  @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
   private Optional<UUID> lastUUID = Optional.empty();
 
   private List<Message> messagesForListBox = new ArrayList<>();
@@ -100,11 +102,19 @@ public class ChatView
       if (eventList.size() > 0) {
         lastUUID = Optional.of(eventList.get(eventList.size() - 1).getUuid());
       }
+      List<String> notifications = new ArrayList<>();
+      eventList.stream()
+               .filter(abstractEvent -> abstractEvent instanceof MentionEvent)
+               .map(abstractEvent -> (MentionEvent) abstractEvent)
+               .filter(mentionEvent -> mentionEvent.getMentionedUsers().contains(sendUserIdField.getValue()))
+               .forEach(mentionEvent -> notifications.add("You were mentioned in a message from " + mentionEvent.getUserId()));
+
       eventList.stream()
                .filter(abstractEvent -> abstractEvent instanceof MessagePostedEvent)
                .forEach(event -> messagesForListBox.add(createMsg((MessagePostedEvent) event)));
       msgListBox.setItems(messagesForListBox);
       Notification.show(eventList.size() + " items found");
+      notifications.forEach(Notification::show);
     });
     fetchEventsButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 

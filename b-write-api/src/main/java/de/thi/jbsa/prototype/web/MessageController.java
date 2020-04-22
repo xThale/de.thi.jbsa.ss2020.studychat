@@ -27,7 +27,7 @@ public class MessageController {
 
   @PostMapping(path = "message", consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PostMessageCmd> publish(@RequestBody final PostMessageCmd cmd) {
-    MessageController.log.info("Received command " + cmd);
+    log.info("Received command " + cmd);
     commandHandlerService.handleCommand(cmd);
     return new ResponseEntity<>(cmd, HttpStatus.OK);
   }

@@ -4,6 +4,7 @@ import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 import de.thi.jbsa.prototype.model.event.Event;
+import de.thi.jbsa.prototype.model.event.MentionEvent;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
 import de.thi.jbsa.prototype.service.MessageService;
 import lombok.extern.java.Log;
@@ -22,9 +23,11 @@ public class EventConsumer {
 
   @JmsListener(destination = "event-queue")
   public void listener(Event event) {
-    EventConsumer.log.info("event received " + event);
+    log.info("event received " + event);
     if (event instanceof MessagePostedEvent) {
       messageService.handleMessagePostedEvent((MessagePostedEvent) event);
+    } else if (event instanceof MentionEvent) {
+      messageService.handleMentionEvent((MentionEvent) event);
     } else {
       throw new IllegalArgumentException("Not supported event: " + event);
     }
