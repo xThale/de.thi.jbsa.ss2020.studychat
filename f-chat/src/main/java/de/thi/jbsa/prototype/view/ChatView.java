@@ -139,7 +139,7 @@ public class ChatView
         lastUUID = Optional.of(eventList.get(eventList.size() - 1).getUuid());
       }
       eventList.stream()
-              .forEach(event -> handle(event));
+              .forEach(event -> EventHandler.valueOf(event).handle(this, event));
       msgListBox.setItems(messagesForListBox);
       Notification.show(eventList.size() + " items found");
     });
@@ -156,10 +156,6 @@ public class ChatView
     componentLayout.add(sendLayout);
     componentLayout.add(fetchLayout);
     add(componentLayout);
-  }
-
-  private void handle(AbstractEvent event) {
-    EventHandler.valueOf(event).handle(this, event);
   }
 
   private Message createMsg(MessagePostedEvent event) {
