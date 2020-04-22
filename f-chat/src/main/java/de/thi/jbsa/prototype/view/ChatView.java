@@ -6,6 +6,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
+
+import de.thi.jbsa.prototype.model.event.NotificationEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -36,7 +39,42 @@ import lombok.extern.slf4j.Slf4j;
 @Route("home")
 @Slf4j
 public class ChatView
-  extends VerticalLayout {
+        extends VerticalLayout {
+
+  private enum EventHandler {
+    MESSAGE_POSTED(MessagePostedEvent.class) {
+      @Override
+      void handle(ChatView chatView, AbstractEvent event) {
+        chatView.addMessageImpl(chatView.createMsg((MessagePostedEvent) event));
+      }
+    },
+    NOTIFICATION(NotificationEvent.class) {
+      @Override
+      void handle(ChatView chatView, AbstractEvent event) {
+        throw new UnsupportedOperationException("Not implemented");
+      }
+    };
+
+    EventHandler(Class<? extends AbstractEvent> eventType) {
+      this.eventType = eventType;
+    }
+
+    static EventHandler valueOf(AbstractEvent event) {
+
+      return Stream.of(values())
+              .filter(h -> h.eventType.equals(event.getClass()))
+              .findAny()
+              .orElseThrow(() -> new IllegalArgumentException("Event not supported: " + event));
+    }
+    private final Class<? extends AbstractEvent> eventType;
+    abstract void handle(ChatView chatView, AbstractEvent event);
+
+
+  }
+
+  private void addMessageImpl(Message msg) {
+    messagesForListBox.add(msg);
+  }
 
   final RestTemplate restTemplate;
 
@@ -78,18 +116,18 @@ public class ChatView
 
     ListBox<Message> msgListBox = new ListBox<>();
     MessageFormat msgListBoxTipFormat = new MessageFormat(
-      "" +
-        "Sent: \t\t{0,time,short}\n" +
-        "From: \t\t{1}\n" +
-        "Cmd-UUID: \t{2}\n" +
-        "Event-UUID: \t{3}\n" +
-        "Entity-ID: \t\t{4}\n");
+            "" +
+                    "Sent: \t\t{0,time,short}\n" +
+                    "From: \t\t{1}\n" +
+                    "Cmd-UUID: \t{2}\n" +
+                    "Event-UUID: \t{3}\n" +
+                    "Entity-ID: \t\t{4}\n");
 
     msgListBox.setRenderer(new ComponentRenderer<>(msg -> {
       Label label = new Label(msg.getContent());
       label.setEnabled(false);
       String tip = msgListBoxTipFormat.format(
-        ChatView.toArray(msg.getCreated(), msg.getSenderUserId(), msg.getCmdUuid(), msg.getEventUuid(), msg.getEntityId()));
+              ChatView.toArray(msg.getCreated(), msg.getSenderUserId(), msg.getCmdUuid(), msg.getEventUuid(), msg.getEntityId()));
       label.setTitle(tip);
       return label;
     }));
@@ -101,7 +139,7 @@ public class ChatView
         lastUUID = Optional.of(eventList.get(eventList.size() - 1).getUuid());
       }
       eventList.stream()
-               .forEach(event -> handle(event));
+              .forEach(event -> handle(event));
       msgListBox.setItems(messagesForListBox);
       Notification.show(eventList.size() + " items found");
     });
@@ -120,12 +158,8 @@ public class ChatView
     add(componentLayout);
   }
 
-  private boolean handle(AbstractEvent event) {
-    if (event instanceof MessagePostedEvent) {
-      return messagesForListBox.add(createMsg((MessagePostedEvent) event));
-    } else {
-      return false;
-    }
+  private void handle(AbstractEvent event) {
+    EventHandler.valueOf(event).handle(this, event);
   }
 
   private Message createMsg(MessagePostedEvent event) {
