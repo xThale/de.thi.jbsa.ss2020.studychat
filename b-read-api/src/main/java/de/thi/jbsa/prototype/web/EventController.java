@@ -2,6 +2,7 @@ package de.thi.jbsa.prototype.web;
 
 import java.util.Optional;
 import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,14 +27,8 @@ public class EventController {
 
   @GetMapping("/events")
   public ResponseEntity<EventList> getEvents(@RequestParam Optional<UUID> lastUUID, @RequestParam String userid) {
-    log.info("lastEvent = " + lastUUID);
-    log.info("userid = " + userid);
-    EventList eventList;
-    if (lastUUID.isPresent()) {
-      eventList = new EventList(messageService.getEvents(lastUUID.get()));
-    } else {
-      eventList = new EventList(messageService.getEvents());
-    }
+    log.info("lastEvent = {}, userID = {}", lastUUID, userid);
+    EventList eventList = new EventList(messageService.getEvents(lastUUID.get()));
     return new ResponseEntity<>(eventList, HttpStatus.OK);
   }
 }

@@ -41,10 +41,6 @@ public class MessageService {
     return messageRepository.findAll();
   }
 
-  public List<AbstractEvent> getEvents() {
-    return events;
-  }
-
   public List<AbstractEvent> getEvents(UUID lastEvent) {
     int indexOfLastEvent = 0;
     if (lastEvent != null) {

@@ -101,8 +101,7 @@ public class ChatView
         lastUUID = Optional.of(eventList.get(eventList.size() - 1).getUuid());
       }
       eventList.stream()
-               .filter(abstractEvent -> abstractEvent instanceof MessagePostedEvent)
-               .forEach(event -> messagesForListBox.add(createMsg((MessagePostedEvent) event)));
+               .forEach(event -> handle(event));
       msgListBox.setItems(messagesForListBox);
       Notification.show(eventList.size() + " items found");
     });
@@ -119,6 +118,14 @@ public class ChatView
     componentLayout.add(sendLayout);
     componentLayout.add(fetchLayout);
     add(componentLayout);
+  }
+
+  private boolean handle(AbstractEvent event) {
+    if (event instanceof MessagePostedEvent) {
+      return messagesForListBox.add(createMsg((MessagePostedEvent) event));
+    } else {
+      return false;
+    }
   }
 
   private Message createMsg(MessagePostedEvent event) {
