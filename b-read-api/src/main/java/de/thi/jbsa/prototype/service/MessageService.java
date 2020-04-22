@@ -3,6 +3,7 @@ package de.thi.jbsa.prototype.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -41,30 +42,19 @@ public class MessageService {
     return messageRepository.findAll();
   }
 
-  public List<AbstractEvent> getEvents() {
-    return events;
-  }
-
-  public List<AbstractEvent> getEvents(UUID lastEvent) {
+  public List<AbstractEvent> getEvents(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<UUID> lastEvent) {
     int indexOfLastEvent = 0;
-    if (lastEvent != null) {
+    if (lastEvent.isPresent()) {
       indexOfLastEvent = events.stream()
                                .map(Event::getUuid)
                                .collect(Collectors.toList())
-                               .indexOf(lastEvent);
+                               .indexOf(lastEvent.get());
     }
     return events
       .stream()
-      .skip(indexOfLastEvent + 1)
+      .skip(indexOfLastEvent == 0 ? 0 : indexOfLastEvent + 1)
       .collect(Collectors.toList());
 
-   /*
-      .filter(messagePostedEvent -> messagePostedEvent.getUuid().equals(lastEvent))
-      .findFirst().map(
-        messagePostedEvent -> messagePostedEvents.subList(messagePostedEvents.indexOf(messagePostedEvent) + 1, messagePostedEvents.size()))
-      .orElse(messagePostedEvents);
-
-    */
   }
 
   public void handleMentionEvent(MentionEvent event) {

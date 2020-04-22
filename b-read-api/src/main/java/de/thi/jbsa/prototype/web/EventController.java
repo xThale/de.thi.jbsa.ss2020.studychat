@@ -25,15 +25,13 @@ public class EventController {
   private final MessageService messageService;
 
   @GetMapping("/events")
-  public ResponseEntity<EventList> getEvents(@RequestParam Optional<UUID> lastUUID, @RequestParam String userid) {
-    log.info("lastEvent = " + lastUUID);
-    log.info("userid = " + userid);
+  public ResponseEntity<EventList> getEvents(
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType") @RequestParam Optional<UUID> lastUUID,
+    @RequestParam String userid) {
+    log.info("lastEvent = {}", lastUUID);
+    log.info("userid = {}", userid);
     EventList eventList;
-    if (lastUUID.isPresent()) {
-      eventList = new EventList(messageService.getEvents(lastUUID.get()));
-    } else {
-      eventList = new EventList(messageService.getEvents());
-    }
+    eventList = new EventList(messageService.getEvents(lastUUID));
     return new ResponseEntity<>(eventList, HttpStatus.OK);
   }
 }
