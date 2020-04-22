@@ -13,5 +13,10 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="2" author="christopher.timm@beskgroup.com">
+        <addColumn tableName="event_entity">
+            <column name="eventname" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
 
 </databaseChangeLog>

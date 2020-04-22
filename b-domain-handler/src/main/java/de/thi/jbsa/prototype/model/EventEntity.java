@@ -25,4 +25,6 @@ public class EventEntity {
 
   @Column
   private String value;
+
+  private EventName eventName;
 }

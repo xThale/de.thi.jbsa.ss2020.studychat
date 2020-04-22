@@ -50,7 +50,8 @@ public class MessageProcessorService {
     EventEntity entity = new EventEntity();
     String json = toJson(event);
     entity.setValue(json);
-    MessageProcessorService.log.debug("Writing event... : " + json);
+    entity.setEventName(EventName.MESSAGE_POSTED);
+    log.debug("Writing event... : " + json);
     eventRepository.save(entity);
     MessageProcessorService.log.info("Sent event to queue " + event);
     return entity;
