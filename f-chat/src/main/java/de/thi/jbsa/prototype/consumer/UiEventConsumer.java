@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
+import com.vaadin.flow.component.UIDetachedException;
 import com.vaadin.flow.shared.Registration;
 import de.thi.jbsa.prototype.model.event.AbstractEvent;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,15 @@ public class UiEventConsumer {
   @JmsListener(destination = "ui-event-topic")
   public void listener(AbstractEvent event) {
     log.info("received event " + event);
-    listeners.forEach(abstractEventConsumer -> abstractEventConsumer.accept(event));
+    for (Consumer<AbstractEvent> abstractEventConsumer : listeners) {
+      try {
+        abstractEventConsumer.accept(event);
+      } catch (UIDetachedException uiDetachedException) {
+        // an open window without activity might become detached after some time
+        log.debug("detached UI : {}", uiDetachedException.toString());
+        listeners.remove(abstractEventConsumer);
+      }
+    }
   }
 
   public static Registration registrer(

@@ -21,7 +21,7 @@ public class MentionEvent
 
   private UUID causationUuid;
 
-  private List<String> mentionedUsers;
+  private String mentionedUser;
 
   private String userId;
 }

@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.jms.Queue;
+import org.checkerframework.checker.nullness.Opt;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
@@ -41,21 +42,18 @@ public class MessageProcessorService {
     this.eventRepository = eventRepository;
   }
 
-  private Optional<MentionEvent> checkForUserMentions(MessagePostedEvent event) {
-    List<String> mentionedUsers = new ArrayList<>();
+  private List<MentionEvent> checkForUserMentions(MessagePostedEvent event) {
+    List<MentionEvent> mentionEventList = new ArrayList<>();
     Matcher matcher = Pattern.compile("\\s@([\\w_-]+)").matcher(event.getContent());
     while (matcher.find()) {
-      mentionedUsers.add(matcher.group().substring(2));
-    }
-    mentionedUsers.forEach(s -> log.debug("mentionedUser found " + s));
-    if (mentionedUsers.size() > 0) {
+      String mentionedUser = matcher.group().substring(2);
       MentionEvent mentionEvent = new MentionEvent();
       mentionEvent.setUserId(event.getUserId());
-      mentionEvent.setMentionedUsers(mentionedUsers);
+      mentionEvent.setMentionedUser(mentionedUser);
       mentionEvent.setCausationUuid(event.getUuid());
-      return Optional.of(mentionEvent);
+      mentionEventList.add(mentionEvent);
     }
-    return Optional.empty();
+    return mentionEventList;
   }
 
   public void postMessage(PostMessageCmd cmd) {
@@ -66,12 +64,11 @@ public class MessageProcessorService {
     event.setContent(cmd.getContent());
     event.setUserId(cmd.getUserId());
     // This is the place for more business logic
-    Optional<MentionEvent> mentionEventOptional = checkForUserMentions(event);
-    if (mentionEventOptional.isPresent()) {
-      log.info("Found mentions of one or more users");
-      final MentionEvent mentionEvent = mentionEventOptional.get();
+    List<MentionEvent> mentionEvents = checkForUserMentions(event);
+    mentionEvents.forEach(mentionEvent -> {
+      log.debug("Found mention of user {}", mentionEvent.getMentionedUser());
       saveAndSendEvent(mentionEvent);
-    }
+    });
 
     saveAndSendEvent(event);
   }
