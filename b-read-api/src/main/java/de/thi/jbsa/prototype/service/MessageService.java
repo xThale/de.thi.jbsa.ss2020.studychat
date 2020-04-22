@@ -69,6 +69,7 @@ public class MessageService {
   public void handleMentionEvent(MentionEvent event) {
     // This is a temporary event. We don't need that in the read-db.
     events.add(event);
+    jmsTemplate.convertAndSend(topic, event);
   }
 
   public void handleMessagePostedEvent(MessagePostedEvent event) {

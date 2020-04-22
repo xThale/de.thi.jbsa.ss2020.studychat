@@ -30,6 +30,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
+import com.vaadin.flow.shared.ui.Transport;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 import de.thi.jbsa.prototype.consumer.UiEventConsumer;
@@ -45,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 @SpringComponent
 @Route("home")
 @Slf4j
-@Push
+@Push(transport = Transport.WEBSOCKET)
 public class ChatView
         extends VerticalLayout {
 
@@ -182,7 +183,6 @@ public class ChatView
     eventList.stream()
              .forEach(event -> EventHandler.valueOf(event).handle(this, event));
     msgListBox.setItems(messagesForListBox);
-    Notification.show(eventList.size() + " items found");
     notifications.forEach(Notification::show);
   }
 

@@ -45,8 +45,9 @@ public class MessageProcessorService {
     List<String> mentionedUsers = new ArrayList<>();
     Matcher matcher = Pattern.compile("\\s@([\\w_-]+)").matcher(event.getContent());
     while (matcher.find()) {
-      mentionedUsers.add(matcher.group());
+      mentionedUsers.add(matcher.group().substring(2));
     }
+    mentionedUsers.forEach(s -> log.debug("mentionedUser found " + s));
     if (mentionedUsers.size() > 0) {
       MentionEvent mentionEvent = new MentionEvent();
       mentionEvent.setUserId(event.getUserId());
