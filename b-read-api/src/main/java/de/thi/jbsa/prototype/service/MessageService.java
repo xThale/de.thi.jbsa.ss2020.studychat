@@ -48,18 +48,14 @@ public class MessageService {
     int indexOfLastEvent = 0;
     if (lastEvent.isPresent()) {
       indexOfLastEvent = events.stream()
-              .map(Event::getUuid)
-              .collect(Collectors.toList())
-              .indexOf(lastEvent.get()) + 1;
+                               .map(Event::getUuid)
+                               .collect(Collectors.toList())
+                               .indexOf(lastEvent.get());
     }
-    if (indexOfLastEvent != 0)
-      return events
-              .stream()
-              .skip(indexOfLastEvent == 0 ? 0 : indexOfLastEvent + 1)
-              .collect(Collectors.toList());
-    else
-      return new ArrayList<>();
-
+    return events
+      .stream()
+      .skip(indexOfLastEvent == 0 ? 0 : indexOfLastEvent + 1)
+      .collect(Collectors.toList());
   }
 
   public void handleMentionEvent(MentionEvent event) {
