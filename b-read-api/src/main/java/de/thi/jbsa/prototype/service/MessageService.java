@@ -25,7 +25,9 @@ public class MessageService {
 
   private final MessageRepository messageRepository;
 
-  public MessageService(MessageRepository messageRepository) {this.messageRepository = messageRepository;}
+  public MessageService(MessageRepository messageRepository) {
+    this.messageRepository = messageRepository;
+  }
 
   private Message createMsg(MessagePostedEvent event) {
     Message msg = new Message();
@@ -46,14 +48,17 @@ public class MessageService {
     int indexOfLastEvent = 0;
     if (lastEvent.isPresent()) {
       indexOfLastEvent = events.stream()
-                               .map(Event::getUuid)
-                               .collect(Collectors.toList())
-                               .indexOf(lastEvent.get());
+              .map(Event::getUuid)
+              .collect(Collectors.toList())
+              .indexOf(lastEvent.get()) + 1;
     }
-    return events
-      .stream()
-      .skip(indexOfLastEvent == 0 ? 0 : indexOfLastEvent + 1)
-      .collect(Collectors.toList());
+    if (indexOfLastEvent != 0)
+      return events
+              .stream()
+              .skip(indexOfLastEvent == 0 ? 0 : indexOfLastEvent + 1)
+              .collect(Collectors.toList());
+    else
+      return new ArrayList<>();
 
   }
 
