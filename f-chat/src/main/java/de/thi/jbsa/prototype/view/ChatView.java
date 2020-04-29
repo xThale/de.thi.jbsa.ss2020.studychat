@@ -2,6 +2,7 @@ package de.thi.jbsa.prototype.view;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -34,7 +35,6 @@ import com.vaadin.flow.spring.annotation.UIScope;
 import de.thi.jbsa.prototype.consumer.UiEventConsumer;
 import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
 import de.thi.jbsa.prototype.model.event.AbstractEvent;
-import de.thi.jbsa.prototype.model.event.EventList;
 import de.thi.jbsa.prototype.model.event.MentionEvent;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
 import de.thi.jbsa.prototype.model.model.Message;
@@ -141,21 +141,12 @@ public class ChatView
       label.setTitle(tip);
       return label;
     }));
-    //
-    Button fetchEventsButton = new Button("Fetch last Events");
-    fetchEventsButton.addClickListener(e -> {
-      List<AbstractEvent> eventList = getEvents(sendUserIdField.getValue());
-      addNewMessages(eventList);
-    });
-    fetchEventsButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
     add(new Text("Welcome to Studychat"));
     sendLayout.add(sendUserIdField);
     sendLayout.add(sendMessageField);
     sendLayout.add(sendMessageButton);
 
     fetchLayout.add(msgListBox);
-    fetchLayout.add(fetchEventsButton);
 
     componentLayout.add(sendLayout);
     componentLayout.add(fetchLayout);
@@ -166,11 +157,16 @@ public class ChatView
     messagesForListBox.add(msg);
   }
 
-  private void addNewMessage(AbstractEvent event) {
-    addNewMessages(Collections.singletonList(event));
+  private void addNewMessageEvent(AbstractEvent event) {
+    addNewMessagesEvent(Collections.singletonList(event));
   }
 
-  private void addNewMessages(List<AbstractEvent> eventList) {
+  private void addNewMessages(List<Message> allMessages) {
+    messagesForListBox.addAll(allMessages);
+    msgListBox.setItems(messagesForListBox);
+  }
+
+  private void addNewMessagesEvent(List<AbstractEvent> eventList) {
     if (eventList.size() > 0) {
       lastUUID = Optional.of(eventList.get(eventList.size() - 1).getUuid());
     }
@@ -190,21 +186,19 @@ public class ChatView
     return msg;
   }
 
-  private List<AbstractEvent> getEvents(String userId) {
-
-    StringBuilder requestURL = new StringBuilder(getEventsUrl);
-    lastUUID.ifPresent(uuid -> requestURL.append("&lastUUID=").append(uuid));
-    ResponseEntity<EventList> responseEntity = restTemplate.getForEntity(requestURL.toString(), EventList.class, userId);
+  private List<Message> getMessagesForInitialState() {
+    ResponseEntity<Message[]> responseEntity = restTemplate.getForEntity(getMessagesUrl, Message[].class);
     if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
-      return responseEntity.getBody().getEvents();
+      return new ArrayList<>(Arrays.asList(responseEntity.getBody()));
     }
     return new ArrayList<>();
   }
 
   @Override
   protected void onAttach(AttachEvent attachEvent) {
+    addNewMessages(getMessagesForInitialState());
     UI ui = attachEvent.getUI();
-    eventRegistration = UiEventConsumer.registrer(abstractEvent -> ui.access(() -> addNewMessage(abstractEvent)));
+    eventRegistration = UiEventConsumer.registrer(abstractEvent -> ui.access(() -> addNewMessageEvent(abstractEvent)));
   }
 
   @Override

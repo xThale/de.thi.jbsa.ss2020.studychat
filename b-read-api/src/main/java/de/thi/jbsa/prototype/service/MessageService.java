@@ -1,17 +1,13 @@
 package de.thi.jbsa.prototype.service;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.jms.Topic;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import de.thi.jbsa.prototype.domain.MessageDoc;
-import de.thi.jbsa.prototype.model.event.AbstractEvent;
-import de.thi.jbsa.prototype.model.event.Event;
 import de.thi.jbsa.prototype.model.event.MentionEvent;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
 import de.thi.jbsa.prototype.model.model.Message;
@@ -21,9 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class MessageService {
-
-  // TODO Workaround. This does not scale. Create another instance of this service and clients will have different Events
-  private final List<AbstractEvent> events = new ArrayList<>(); // workaround
 
   private final JmsTemplate jmsTemplate;
 
@@ -48,34 +41,22 @@ public class MessageService {
     return msg;
   }
 
-  public List<MessageDoc> getAllMessages() {
-    return messageRepository.findAll();
-  }
-
-  public List<AbstractEvent> getEvents(@SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<UUID> lastEvent) {
-    int indexOfLastEvent = 0;
-    if (lastEvent.isPresent()) {
-      indexOfLastEvent = events.stream()
-                               .map(Event::getUuid)
-                               .collect(Collectors.toList())
-                               .indexOf(lastEvent.get());
-    }
-    return events
-      .stream()
-      .skip(indexOfLastEvent == 0 ? 0 : indexOfLastEvent + 1)
-      .collect(Collectors.toList());
+  public List<Message> getlast10Messages() {
+    return messageRepository.findFirst10ByOrderByMessage_CreatedDesc()
+                            .stream()
+                            .map(MessageDoc::getMessage)
+                            .sorted(Comparator.comparingLong(Message::getEntityId))
+                            .collect(Collectors.toList());
   }
 
   public void handleMentionEvent(MentionEvent event) {
     // This is a temporary event. We don't need that in the read-db.
-    events.add(event);
     jmsTemplate.convertAndSend(topic, event);
   }
 
   public void handleMessagePostedEvent(MessagePostedEvent event) {
     MessageDoc doc = new MessageDoc(createMsg(event));
     messageRepository.save(doc);
-    events.add(event);
     jmsTemplate.convertAndSend(topic, event);
   }
 }
