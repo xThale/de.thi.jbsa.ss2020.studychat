@@ -30,6 +30,6 @@ public class EventEntity {
   @Column
   private String value;
 
-  @Enumerated(EnumType.STRING)
+  @Enumerated
   private EventName eventName;
 }
