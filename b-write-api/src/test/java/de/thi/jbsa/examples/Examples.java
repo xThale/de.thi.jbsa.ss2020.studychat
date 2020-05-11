@@ -21,7 +21,7 @@ public class Examples {
 
   interface Calculator {
 
-    int add(int a, int b);
+    String add(int a, int b);
   }
 
   interface MyInterface {
@@ -53,8 +53,15 @@ public class Examples {
   private Object invokeImpl(Object proxy, Method method, Object[] args) {
     return method.getName() +
       Stream.of(args != null ? args : new Object[0])
+            .peek(arg -> invokeImpl_checkArg(arg))
             .map(String::valueOf)
             .collect(Collectors.joining(",", "(", ")"));
+  }
+
+  private void invokeImpl_checkArg(Object arg) {
+    if (arg instanceof Integer && arg.equals(Integer.MAX_VALUE)) {
+      throw new IllegalArgumentException("MAX int not allowed");
+    }
   }
 
   @Test

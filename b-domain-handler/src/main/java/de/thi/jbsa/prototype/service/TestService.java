@@ -11,7 +11,7 @@ import de.thi.jbsa.prototype.aop.Censored;
 import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
 
 /**
- * TO BE DELETED
+ * FIXME @Timmy TO BE DELETED
  */
 @Service
 public class TestService {
