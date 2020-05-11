@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
 import de.thi.jbsa.prototype.service.TestService;
 
@@ -11,6 +12,7 @@ import de.thi.jbsa.prototype.service.TestService;
  * Created by Balazs Endredi <balazs.endredi@beskgroup.com> on 06.05.2020
  */
 @SpringBootTest
+@TestPropertySource({ "classpath:application.properties", "classpath:application-test.properties" })
 class DomainAspectsTest {
 
   @Autowired
