@@ -18,5 +18,15 @@
             <column name="eventname" type="varchar(255)"/>
         </addColumn>
     </changeSet>
+    <changeSet id="3" author="christopher.timm@beskgroup.com">
+        <update tableName="event_entity">
+            <column name="eventname">MESSAGE_POSTED</column>
+            <where>eventname='0'</where>
+        </update>
+        <update tableName="event_entity">
+            <column name="eventname">MENTION</column>
+            <where>eventname='1'</where>
+        </update>
+    </changeSet>
 
 </databaseChangeLog>

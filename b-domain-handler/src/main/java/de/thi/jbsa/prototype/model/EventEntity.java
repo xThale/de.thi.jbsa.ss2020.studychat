@@ -2,6 +2,8 @@ package de.thi.jbsa.prototype.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -28,5 +30,6 @@ public class EventEntity {
   @Column
   private String value;
 
+  @Enumerated(EnumType.STRING)
   private EventName eventName;
 }
