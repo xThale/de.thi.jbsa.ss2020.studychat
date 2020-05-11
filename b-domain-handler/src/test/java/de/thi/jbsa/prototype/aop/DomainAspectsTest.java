@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
+import de.thi.jbsa.prototype.service.MessageProcessorService;
 import de.thi.jbsa.prototype.service.TestService;
 
 /**
@@ -16,10 +17,15 @@ import de.thi.jbsa.prototype.service.TestService;
 class DomainAspectsTest {
 
   @Autowired
+  private MessageProcessorService messageProcessorService;
+
+  @Autowired
   private TestService testService;
 
   @Test
   void censoredMethods() {
+    // FIXME @Timmy, can you please change to messageProcessorService.postMessage();
+    // Please delete TestService
     PostMessageCmd cmd = new PostMessageCmd("user-id", "I'm a JBSA student!");
     Assert.assertEquals("I'm a <not allowed term> student!", testService.censoredMethod(cmd));
   }
