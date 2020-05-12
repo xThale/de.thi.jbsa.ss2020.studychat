@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-    <configuration default="false" name="All mockitotests" type="JUnit" factoryName="JUnit">
+    <configuration default="false" name="All mockito tests" type="JUnit" factoryName="JUnit">
         <useClassPathOnly/>
         <extension name="coverage" sample_coverage="false">
             <pattern>
