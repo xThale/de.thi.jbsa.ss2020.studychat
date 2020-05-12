@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.test.context.TestPropertySource;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
 import de.thi.jbsa.prototype.model.event.AbstractEvent;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
@@ -28,7 +27,7 @@ import de.thi.jbsa.prototype.service.MessageProcessorService;
  */
 @SpringBootTest
 @TestPropertySource({ "classpath:application.properties", "classpath:application-test.properties" })
-class DomainAspectsTest {
+class DomainAspectsITest {
 
   @Qualifier("eventQueue")
   @Autowired
@@ -41,7 +40,7 @@ class DomainAspectsTest {
   private MessageProcessorService messageProcessorService;
 
   @Test
-  void censoredMethods()
+  void testCensoredMessagePosted()
     throws Exception {
     // given
     PostMessageCmd cmd = new PostMessageCmd("user-id", "I'm a JBSA student!");

@@ -90,9 +90,9 @@ public class MessageProcessorService {
       entity.setEventName(EventName.MENTION);
     }
     MessageProcessorService.log.debug("Writing event... : " + json);
-    eventRepository.save(entity);
+    EventEntity savedEventEntity = eventRepository.save(entity);
     MessageProcessorService.log.info("Written event to db " + event);
-    return entity;
+    return savedEventEntity;
   }
 
   private void sendEvent(AbstractEvent event) {
