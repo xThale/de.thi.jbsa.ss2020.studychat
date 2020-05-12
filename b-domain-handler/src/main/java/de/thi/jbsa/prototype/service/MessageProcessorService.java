@@ -2,16 +2,15 @@ package de.thi.jbsa.prototype.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.jms.Queue;
-import org.checkerframework.checker.nullness.Opt;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.thi.jbsa.prototype.aop.Censored;
 import de.thi.jbsa.prototype.model.EventEntity;
 import de.thi.jbsa.prototype.model.EventName;
 import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
@@ -56,9 +55,10 @@ public class MessageProcessorService {
     return mentionEventList;
   }
 
+  @Censored
   public void postMessage(PostMessageCmd cmd) {
 
-    log.info("creating event for ... " + cmd);
+    MessageProcessorService.log.info("creating event for ... " + cmd);
     MessagePostedEvent event = new MessagePostedEvent();
     event.setCmdUuid(cmd.getUuid());
     event.setContent(cmd.getContent());
@@ -66,7 +66,7 @@ public class MessageProcessorService {
     // This is the place for more business logic
     List<MentionEvent> mentionEvents = checkForUserMentions(event);
     mentionEvents.forEach(mentionEvent -> {
-      log.debug("Found mention of user {}", mentionEvent.getMentionedUser());
+      MessageProcessorService.log.debug("Found mention of user {}", mentionEvent.getMentionedUser());
       saveAndSendEvent(mentionEvent);
     });
 
@@ -74,7 +74,7 @@ public class MessageProcessorService {
   }
 
   private void saveAndSendEvent(AbstractEvent event) {
-    log.info("Saving event " + event);
+    MessageProcessorService.log.info("Saving event " + event);
     EventEntity entity = saveEvent(event);
     event.setEntityId(entity.getId());
     sendEvent(event);
@@ -89,15 +89,15 @@ public class MessageProcessorService {
     } else if (event instanceof MentionEvent) {
       entity.setEventName(EventName.MENTION);
     }
-    log.debug("Writing event... : " + json);
+    MessageProcessorService.log.debug("Writing event... : " + json);
     eventRepository.save(entity);
-    log.info("Written event to db " + event);
+    MessageProcessorService.log.info("Written event to db " + event);
     return entity;
   }
 
   private void sendEvent(AbstractEvent event) {
     jmsTemplate.convertAndSend(eventQueue, event);
-    log.info("Sent event to queue " + event);
+    MessageProcessorService.log.info("Sent event to queue " + event);
   }
 
   private String toJson(de.thi.jbsa.prototype.model.event.Event event) {
