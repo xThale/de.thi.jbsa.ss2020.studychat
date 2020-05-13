@@ -125,9 +125,9 @@ public class MessageProcessorService {
       entity.setEventName(EventName.MESSAGE_REPEATED);
     }
     log.debug("Writing event... : " + json);
-    eventRepository.save(entity);
+    EventEntity savedEventEntity = eventRepository.save(entity);
     log.info("Written event to db " + event);
-    return entity;
+    return savedEventEntity;
   }
 
   private String toJson(de.thi.jbsa.prototype.model.event.Event event) {
