@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import de.thi.jbsa.prototype.domain.MessageDoc;
 import de.thi.jbsa.prototype.model.event.MentionEvent;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
+import de.thi.jbsa.prototype.model.event.MessageRepeatedEvent;
 import de.thi.jbsa.prototype.model.model.Message;
 import de.thi.jbsa.prototype.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,15 @@ public class MessageService {
   public void handleMessagePostedEvent(MessagePostedEvent event) {
     MessageDoc doc = new MessageDoc(createMsg(event));
     messageRepository.save(doc);
+    jmsTemplate.convertAndSend(topic, event);
+  }
+
+  public void handleMessageRepeatedEvent(MessageRepeatedEvent event) {
+    MessageDoc existingMessage = messageRepository.findFirstByMessage_EventUuidOrderByMessage_CreatedDesc(event.getMessageEventUUID());
+    log.debug("Message with UUID {} occurred for the {} times", existingMessage.getMessage().getEventUuid(), event.getOccurCount());
+    existingMessage.getMessage().setOccurCount(event.getOccurCount());
+
+    messageRepository.save(existingMessage);
     jmsTemplate.convertAndSend(topic, event);
   }
 }

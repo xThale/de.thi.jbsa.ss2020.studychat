@@ -1,6 +1,7 @@
 package de.thi.jbsa.prototype.repository;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import de.thi.jbsa.prototype.domain.MessageDoc;
@@ -12,5 +13,6 @@ public interface MessageRepository
   extends MongoRepository<MessageDoc, String> {
 
   List<MessageDoc> findFirst10ByOrderByMessage_CreatedDesc();
+  MessageDoc findFirstByMessage_EventUuidOrderByMessage_CreatedDesc(UUID messageUUID);
 
 }

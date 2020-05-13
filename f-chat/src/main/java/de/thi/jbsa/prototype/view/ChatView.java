@@ -37,6 +37,7 @@ import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
 import de.thi.jbsa.prototype.model.event.AbstractEvent;
 import de.thi.jbsa.prototype.model.event.MentionEvent;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
+import de.thi.jbsa.prototype.model.event.MessageRepeatedEvent;
 import de.thi.jbsa.prototype.model.model.Message;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,6 +54,12 @@ public class ChatView
       @Override
       void handle(ChatView chatView, AbstractEvent event) {
         chatView.addMessageImpl(chatView.createMsg((MessagePostedEvent) event));
+      }
+    },
+    MESSAGE_REPEATED(MessageRepeatedEvent.class) {
+      @Override
+      void handle(ChatView chatView, AbstractEvent event) {
+        chatView.setCounterForMessage((MessageRepeatedEvent) event);
       }
     },
     NOTIFICATION(MentionEvent.class) {
@@ -131,12 +138,18 @@ public class ChatView
         "From: \t\t{1}\n" +
         "Cmd-UUID: \t{2}\n" +
         "Event-UUID: \t{3}\n" +
-        "Entity-ID: \t\t{4}\n");
+        "Entity-ID: \t\t{4}\n" +
+        "OccurCount: \t\t{5}\n");
 
     msgListBox.setRenderer(new ComponentRenderer<>(msg -> {
-      Label label = new Label(msg.getContent());
+      Label label;
+      if (msg.getOccurCount() > 1) {
+        label = new Label(msg.getOccurCount() + "x - " + msg.getContent());
+      } else {
+        label = new Label(msg.getContent());
+      }
       label.setEnabled(false);
-      Object[] strings = { msg.getCreated(), msg.getSenderUserId(), msg.getCmdUuid(), msg.getEventUuid(), msg.getEntityId() };
+      Object[] strings = { msg.getCreated(), msg.getSenderUserId(), msg.getCmdUuid(), msg.getEventUuid(), msg.getEntityId(), msg.getOccurCount() };
       String tip = msgListBoxTipFormat.format(strings);
       label.setTitle(tip);
       return label;
@@ -157,8 +170,17 @@ public class ChatView
     messagesForListBox.add(msg);
   }
 
-  private void addNewMessageEvent(AbstractEvent event) {
-    addNewMessagesEvent(Collections.singletonList(event));
+  private void addNewEvent(AbstractEvent event) {
+    addNewEvent(Collections.singletonList(event));
+  }
+
+  private void addNewEvent(List<AbstractEvent> eventList) {
+    if (eventList.size() > 0) {
+      lastUUID = Optional.of(eventList.get(eventList.size() - 1).getUuid());
+    }
+
+    eventList.forEach(event -> EventHandler.valueOf(event).handle(this, event));
+    msgListBox.setItems(messagesForListBox);
   }
 
   private void addNewMessages(List<Message> allMessages) {
@@ -166,13 +188,11 @@ public class ChatView
     msgListBox.setItems(messagesForListBox);
   }
 
-  private void addNewMessagesEvent(List<AbstractEvent> eventList) {
-    if (eventList.size() > 0) {
-      lastUUID = Optional.of(eventList.get(eventList.size() - 1).getUuid());
-    }
-
-    eventList.forEach(event -> EventHandler.valueOf(event).handle(this, event));
-    msgListBox.setItems(messagesForListBox);
+  @Override
+  protected void onAttach(AttachEvent attachEvent) {
+    addNewMessages(getMessagesForInitialState());
+    UI ui = attachEvent.getUI();
+    eventRegistration = UiEventConsumer.registrer(abstractEvent -> ui.access(() -> addNewEvent(abstractEvent)));
   }
 
   private Message createMsg(MessagePostedEvent event) {
@@ -194,11 +214,16 @@ public class ChatView
     return new ArrayList<>();
   }
 
-  @Override
-  protected void onAttach(AttachEvent attachEvent) {
-    addNewMessages(getMessagesForInitialState());
-    UI ui = attachEvent.getUI();
-    eventRegistration = UiEventConsumer.registrer(abstractEvent -> ui.access(() -> addNewMessageEvent(abstractEvent)));
+  private void setCounterForMessage(MessageRepeatedEvent event) {
+    Optional<Message> existingMessage = messagesForListBox.stream().filter(message -> message.getEventUuid().equals(event.getMessageEventUUID()))
+                                                          .findFirst();
+    if (existingMessage.isPresent()) {
+      int messageIndex = messagesForListBox.indexOf(existingMessage.get());
+      messagesForListBox.remove(messageIndex);
+      existingMessage.get().setOccurCount(event.getOccurCount());
+      messagesForListBox.add(messageIndex, existingMessage.get());
+    }
+    msgListBox.setItems(messagesForListBox);
   }
 
   @Override

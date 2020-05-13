@@ -2,6 +2,7 @@ package de.thi.jbsa.prototype.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.jms.Queue;
@@ -17,6 +18,7 @@ import de.thi.jbsa.prototype.model.cmd.PostMessageCmd;
 import de.thi.jbsa.prototype.model.event.AbstractEvent;
 import de.thi.jbsa.prototype.model.event.MentionEvent;
 import de.thi.jbsa.prototype.model.event.MessagePostedEvent;
+import de.thi.jbsa.prototype.model.event.MessageRepeatedEvent;
 import de.thi.jbsa.prototype.repository.EventRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,10 +57,41 @@ public class MessageProcessorService {
     return mentionEventList;
   }
 
+  private void checkForDuplicateMessagesAndSaveAndSend(MessagePostedEvent event) {
+    Optional<EventEntity> previousMessage = eventRepository.findFirstByEventNameAndValueContainingOrderByIdDesc(EventName.MESSAGE_POSTED,
+      "userId\":\"" + event.getUserId());
+    if (previousMessage.isPresent()) {
+      final MessagePostedEvent messagePostedEventFromDb = (MessagePostedEvent) fromJson(previousMessage.get().getValue());
+      if (event.getContent().equals(messagePostedEventFromDb.getContent())) {
+        Optional<EventEntity> previousRepeatedEvent = eventRepository.findFirstByEventNameAndValueContainingOrderByIdDesc(EventName.MESSAGE_REPEATED,
+          "messageEventUUID\":\"" + messagePostedEventFromDb.getUuid());
+        MessageRepeatedEvent newMessageRepeatedEvent;
+        if (previousRepeatedEvent.isPresent()) {
+          MessageRepeatedEvent previousMessageRepeatedEventFromDb = (MessageRepeatedEvent) fromJson(previousRepeatedEvent.get().getValue());
+          newMessageRepeatedEvent = MessageRepeatedEvent.of(previousMessageRepeatedEventFromDb);
+        } else {
+          newMessageRepeatedEvent = MessageRepeatedEvent.of(messagePostedEventFromDb);
+        }
+        saveAndSendEvent(newMessageRepeatedEvent);
+        return;
+      }
+    }
+    log.info("Message appeared for the first time. Just sending it through");
+    saveAndSendEvent(event);
+  }
+
+  private AbstractEvent fromJson(String value) {
+    try {
+      return objectMapper.readValue(value, AbstractEvent.class);
+    } catch (JsonProcessingException e) {
+      throw new IllegalArgumentException("BusinessEvent cannot be deserialized: " + value, e);
+    }
+  }
+
   @Censored
   public void postMessage(PostMessageCmd cmd) {
 
-    MessageProcessorService.log.info("creating event for ... " + cmd);
+    log.info("creating event for ... " + cmd);
     MessagePostedEvent event = new MessagePostedEvent();
     event.setCmdUuid(cmd.getUuid());
     event.setContent(cmd.getContent());
@@ -66,15 +99,15 @@ public class MessageProcessorService {
     // This is the place for more business logic
     List<MentionEvent> mentionEvents = checkForUserMentions(event);
     mentionEvents.forEach(mentionEvent -> {
-      MessageProcessorService.log.debug("Found mention of user {}", mentionEvent.getMentionedUser());
+      log.debug("Found mention of user {}", mentionEvent.getMentionedUser());
       saveAndSendEvent(mentionEvent);
     });
 
-    saveAndSendEvent(event);
+    checkForDuplicateMessagesAndSaveAndSend(event);
   }
 
   private void saveAndSendEvent(AbstractEvent event) {
-    MessageProcessorService.log.info("Saving event " + event);
+    log.info("Saving event " + event);
     EventEntity entity = saveEvent(event);
     event.setEntityId(entity.getId());
     sendEvent(event);
@@ -88,16 +121,13 @@ public class MessageProcessorService {
       entity.setEventName(EventName.MESSAGE_POSTED);
     } else if (event instanceof MentionEvent) {
       entity.setEventName(EventName.MENTION);
+    } else if (event instanceof MessageRepeatedEvent) {
+      entity.setEventName(EventName.MESSAGE_REPEATED);
     }
-    MessageProcessorService.log.debug("Writing event... : " + json);
+    log.debug("Writing event... : " + json);
     eventRepository.save(entity);
-    MessageProcessorService.log.info("Written event to db " + event);
+    log.info("Written event to db " + event);
     return entity;
-  }
-
-  private void sendEvent(AbstractEvent event) {
-    jmsTemplate.convertAndSend(eventQueue, event);
-    MessageProcessorService.log.info("Sent event to queue " + event);
   }
 
   private String toJson(de.thi.jbsa.prototype.model.event.Event event) {
@@ -106,5 +136,10 @@ public class MessageProcessorService {
     } catch (JsonProcessingException e) {
       throw new IllegalArgumentException("BusinessEvent cannot be serialized: " + event, e);
     }
+  }
+
+  private void sendEvent(AbstractEvent event) {
+    jmsTemplate.convertAndSend(eventQueue, event);
+    log.info("Sent event to queue " + event);
   }
 }
