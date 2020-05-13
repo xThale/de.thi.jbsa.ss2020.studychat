@@ -72,6 +72,7 @@ public class MessageProcessorService {
         } else {
           newMessageRepeatedEvent = MessageRepeatedEvent.of(messagePostedEventFromDb);
         }
+        saveEvent(event);
         saveAndSendEvent(newMessageRepeatedEvent);
         return;
       }

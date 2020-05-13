@@ -4,10 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.jms.Queue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -112,6 +115,8 @@ class MessageProcessorServiceTest {
     assertNotNull(receivedMessagePostedEvent.getEntityId());
   }
 
+  List<EventEntity> savedEventEntities = new ArrayList<>();
+
   @Test
   void postMessageWithMentionCheckJmsAgainstDb() {
     // given
@@ -135,14 +140,80 @@ class MessageProcessorServiceTest {
     assertTrue(messagePostedEventEntity.getValue().contains(receivedMessagePostedEvent.getUuid().toString()));
   }
 
+  @Test
+  void postMessageDuplicate() {
+    when(eventRepository.findFirstByEventNameAndValueContainingOrderByIdDesc(any(), any()))
+      .thenAnswer(invocation -> {
+        // Always return the last saved object of required type
+        return savedEventEntities.stream()
+                                 .filter(eventEntity -> eventEntity.getEventName().equals(invocation.getArgument(0)))
+                                 .reduce((first, second) -> second);
+      });
+
+    // given
+    PostMessageCmd postMessageCmd = new PostMessageCmd("timmy", "Hello World!");
+    messageProcessorService.postMessage(postMessageCmd);
+    PostMessageCmd postMessageCmdDup = new PostMessageCmd("timmy", "Hello World!");
+
+    // when
+    messageProcessorService.postMessage(postMessageCmdDup);
+
+    // then
+    verify(eventRepository, times(3)).save(eventEntityArgumentCaptor.capture());
+    List<EventEntity> eventsSavedInDb = eventEntityArgumentCaptor.getAllValues();
+    EventEntity messagePostedEventEntity = eventsSavedInDb.get(0);
+    EventEntity dupMessagePostedEventEntity = eventsSavedInDb.get(1);
+    EventEntity messageRepeatedEvent = eventsSavedInDb.get(2);
+    assertEquals(EventName.MESSAGE_POSTED, messagePostedEventEntity.getEventName());
+    assertEquals(EventName.MESSAGE_REPEATED, messageRepeatedEvent.getEventName());
+    assertEquals(EventName.MESSAGE_POSTED, dupMessagePostedEventEntity.getEventName());
+    assertTrue(messagePostedEventEntity.getValue().contains("Hello World!"));
+    assertTrue(messageRepeatedEvent.getValue().contains("occurCount\":2"));
+  }
+
+  @Test
+  void postMessageTriple() {
+    when(eventRepository.findFirstByEventNameAndValueContainingOrderByIdDesc(any(), any()))
+      .thenAnswer(invocation -> {
+        // Always return the last saved object of required type
+        return savedEventEntities.stream()
+                                 .filter(eventEntity -> eventEntity.getEventName().equals(invocation.getArgument(0)))
+                                 .reduce((first, second) -> second);
+      });
+
+    // given
+    PostMessageCmd postMessageCmd = new PostMessageCmd("timmy", "Hello World!");
+    messageProcessorService.postMessage(postMessageCmd);
+    PostMessageCmd postMessageCmdDup = new PostMessageCmd("timmy", "Hello World!");
+    PostMessageCmd postMessageCmdTrip = new PostMessageCmd("timmy", "Hello World!");
+    messageProcessorService.postMessage(postMessageCmdTrip);
+
+    // when
+    messageProcessorService.postMessage(postMessageCmdDup);
+
+    // then
+    verify(eventRepository, times(5)).save(eventEntityArgumentCaptor.capture());
+    List<EventEntity> eventsSavedInDb = eventEntityArgumentCaptor.getAllValues();
+    EventEntity messagePostedEventEntity = eventsSavedInDb.get(0);
+    EventEntity dupMessagePostedEventEntity = eventsSavedInDb.get(1);
+    EventEntity messageRepeatedEvent = eventsSavedInDb.get(2);
+    assertEquals(EventName.MESSAGE_POSTED, messagePostedEventEntity.getEventName());
+    assertEquals(EventName.MESSAGE_REPEATED, messageRepeatedEvent.getEventName());
+    assertEquals(EventName.MESSAGE_POSTED, dupMessagePostedEventEntity.getEventName());
+    assertTrue(messagePostedEventEntity.getValue().contains("Hello World!"));
+    assertTrue(messageRepeatedEvent.getValue().contains("occurCount\":2"));
+  }
+
   @BeforeEach
   void setUp() {
     when(eventRepository.save(any(EventEntity.class))).thenAnswer(invocation -> {
       EventEntity entityToSave = invocation.getArgument(0);
       entityToSave.setId(getNewEntityId());
+      savedEventEntities.add(entityToSave);
       return entityToSave;
     });
     eventRepository.deleteAll();
     entityId = 0;
+    savedEventEntities.clear();
   }
 }
