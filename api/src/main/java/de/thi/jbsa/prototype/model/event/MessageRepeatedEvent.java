@@ -2,6 +2,7 @@ package de.thi.jbsa.prototype.model.event;
 
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
@@ -13,21 +14,17 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@Builder
 public class MessageRepeatedEvent
   extends AbstractEvent {
 
   private final UUID uuid = UUID.randomUUID();
 
+  @Builder.Default
   private int occurCount = 2;
 
-  private UUID messageEventUUID;
+  private UUID originalMessageUUID;
 
-  public static MessageRepeatedEvent of(MessagePostedEvent messagePostedEvent) {
-    // if we get a repeated event it means that the message has appeared at least twice.
-    return new MessageRepeatedEvent(2, messagePostedEvent.getUuid());
-  }
+  private UUID currentMessageEventUUID;
 
-  public static MessageRepeatedEvent of(MessageRepeatedEvent messageRepeatedEvent) {
-    return new MessageRepeatedEvent(messageRepeatedEvent.getOccurCount() + 1, messageRepeatedEvent.getMessageEventUUID());
-  }
 }

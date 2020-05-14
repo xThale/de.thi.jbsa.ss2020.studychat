@@ -214,8 +214,17 @@ public class ChatView
     return new ArrayList<>();
   }
 
+  @Override
+  protected void onDetach(DetachEvent detachEvent) {
+    if (eventRegistration != null) {
+      eventRegistration.remove();
+      eventRegistration = null;
+    }
+  }
+
   private void setCounterForMessage(MessageRepeatedEvent event) {
-    Optional<Message> existingMessage = messagesForListBox.stream().filter(message -> message.getEventUuid().equals(event.getMessageEventUUID()))
+    Optional<Message> existingMessage = messagesForListBox.stream()
+                                                          .filter(message -> message.getEventUuid().equals(event.getOriginalMessageUUID()))
                                                           .findFirst();
     if (existingMessage.isPresent()) {
       int messageIndex = messagesForListBox.indexOf(existingMessage.get());
@@ -224,12 +233,6 @@ public class ChatView
       messagesForListBox.add(messageIndex, existingMessage.get());
     }
     msgListBox.setItems(messagesForListBox);
-  }
-
-  @Override
-  protected void onDetach(DetachEvent detachEvent) {
-    eventRegistration.remove();
-    eventRegistration = null;
   }
 
   private void sendMessage(String message, String userId) {

@@ -46,7 +46,7 @@ class CommandHandlerServiceITest {
     PostMessageCmd postedMessage = new PostMessageCmd("timmy", "but I also use integration tests for being closer to production");
     commandHandlerService.handleCommand(postedMessage);
     // then
-    final ActiveMQObjectMessage message = (ActiveMQObjectMessage) consumer.receiveNoWait();
+    final ActiveMQObjectMessage message = (ActiveMQObjectMessage) consumer.receive(1000);
     assertNotNull(message);
     PostMessageCmd commendFromQueue = (PostMessageCmd) message.getObject();
     assertEquals(postedMessage, commendFromQueue);

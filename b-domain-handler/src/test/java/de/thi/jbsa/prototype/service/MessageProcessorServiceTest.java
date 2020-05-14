@@ -212,7 +212,6 @@ class MessageProcessorServiceTest {
       savedEventEntities.add(entityToSave);
       return entityToSave;
     });
-    eventRepository.deleteAll();
     entityId = 0;
     savedEventEntities.clear();
   }

@@ -63,17 +63,24 @@ public class MessageProcessorService {
     if (previousMessage.isPresent()) {
       final MessagePostedEvent messagePostedEventFromDb = (MessagePostedEvent) fromJson(previousMessage.get().getValue());
       if (event.getContent().equals(messagePostedEventFromDb.getContent())) {
+
         Optional<EventEntity> previousRepeatedEvent = eventRepository.findFirstByEventNameAndValueContainingOrderByIdDesc(EventName.MESSAGE_REPEATED,
-          "messageEventUUID\":\"" + messagePostedEventFromDb.getUuid());
-        MessageRepeatedEvent newMessageRepeatedEvent;
+          "currentMessageEventUUID\":\"" + messagePostedEventFromDb.getUuid());
+        MessagePostedEvent newSavedMessagePostedEvent = (MessagePostedEvent) fromJson(saveEvent(event).getValue());
+        MessageRepeatedEvent.MessageRepeatedEventBuilder newMessageRepeatedEventBuilder =
+          MessageRepeatedEvent.builder()
+                              .currentMessageEventUUID(
+                                newSavedMessagePostedEvent.getUuid());
         if (previousRepeatedEvent.isPresent()) {
           MessageRepeatedEvent previousMessageRepeatedEventFromDb = (MessageRepeatedEvent) fromJson(previousRepeatedEvent.get().getValue());
-          newMessageRepeatedEvent = MessageRepeatedEvent.of(previousMessageRepeatedEventFromDb);
+          newMessageRepeatedEventBuilder = newMessageRepeatedEventBuilder
+            .originalMessageUUID(previousMessageRepeatedEventFromDb.getOriginalMessageUUID())
+            .occurCount(previousMessageRepeatedEventFromDb.getOccurCount() + 1);
         } else {
-          newMessageRepeatedEvent = MessageRepeatedEvent.of(messagePostedEventFromDb);
+          newMessageRepeatedEventBuilder = newMessageRepeatedEventBuilder
+            .originalMessageUUID(messagePostedEventFromDb.getUuid());
         }
-        saveEvent(event);
-        saveAndSendEvent(newMessageRepeatedEvent);
+        saveAndSendEvent(newMessageRepeatedEventBuilder.build());
         return;
       }
     }
